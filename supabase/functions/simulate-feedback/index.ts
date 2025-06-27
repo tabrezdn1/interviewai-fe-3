@@ -136,15 +136,40 @@ if (tavusApiKey) {
 async function generateLLMFeedback(interviewDetails: InterviewDetails, transcript?: string): Promise<FeedbackResponse> {
   if (!openai) {
     console.warn('OpenAI not initialized, falling back to mock feedback');
-    return generateMockFeedback(interviewDetails);
+    return generateMockFeedback(interviewDetails, transcript);
   }
 
   try {
     console.log('Generating LLM feedback for interview:', interviewDetails.id);
 
+    // Calculate interview duration in minutes (if completed_at is available)
+    let interviewDuration = 0;
+    let interviewTooShort = false;
+    
+    if (interviewDetails.completed_at && interviewDetails.scheduled_at) {
+      const startTime = new Date(interviewDetails.scheduled_at).getTime();
+      const endTime = new Date(interviewDetails.completed_at).getTime();
+      interviewDuration = Math.round((endTime - startTime) / (1000 * 60)); // in minutes
+      
+      // Check if interview was too short (less than 20% of expected duration)
+      const expectedDuration = interviewDetails.duration || 20; // default to 20 minutes
+      interviewTooShort = interviewDuration < (expectedDuration * 0.2);
+      
+      console.log('Interview duration analysis:', {
+        actualDuration: interviewDuration,
+        expectedDuration,
+        isTooShort: interviewTooShort
+      });
+    }
+
+    // Get difficulty level for strictness adjustment
+    const difficultyLevel = interviewDetails.difficulty_levels?.value || 'medium';
+    console.log('Interview difficulty level:', difficultyLevel);
+
     // Create a detailed prompt for the LLM
     const systemPrompt = `You are an expert interview coach and evaluator. You need to provide detailed, constructive feedback for a job interview. 
-The feedback should be honest but encouraging, highlighting both strengths and areas for improvement.
+The feedback should be honest, critical, and direct. Your primary goal is to identify weaknesses and areas for improvement.
+You should be especially strict and critical in your evaluation, as this helps the candidate improve.
 
 Interview details:
 - Position: ${interviewDetails.role}
@@ -152,12 +177,24 @@ Interview details:
 - Interview type: ${interviewDetails.interview_types?.type || 'General'}
 - Experience level: ${interviewDetails.experience_levels?.label || 'Not specified'}
 - Difficulty level: ${interviewDetails.difficulty_levels?.label || 'Standard'}
+- Expected duration: ${interviewDetails.duration || 20} minutes
+${interviewTooShort ? '- WARNING: The interview was extremely short! This indicates the candidate may have left early or not taken it seriously.' : ''}
 
-The interview context was:
-${interviewDetails.llm_generated_context || 'A standard job interview for the specified role.'}`;
+The interview context was: ${interviewDetails.llm_generated_context || 'A standard job interview for the specified role.'}
+
+Evaluation guidelines based on difficulty level:
+- For 'easy' difficulty: Focus on fundamental errors and basic interview etiquette.
+- For 'medium' difficulty: Be more thorough in identifying technical gaps and communication issues.
+- For 'hard' difficulty: Be extremely critical, looking for nuanced errors, lack of depth, and missed opportunities to demonstrate expertise.
+
+${difficultyLevel === 'hard' ? 'This is a HARD difficulty interview. Be very critical and demanding in your assessment.' : 
+  difficultyLevel === 'medium' ? 'This is a MEDIUM difficulty interview. Be thorough and identify clear areas for improvement.' : 
+  'This is an EASY difficulty interview. Focus on fundamental issues while still being critical.'}
+
+${interviewTooShort ? 'CRITICAL: Since the interview was extremely short, this should be reflected in a very low overall score (0-30) and direct feedback about the unprofessional nature of leaving an interview early or not engaging properly.' : ''}`;
 
     const userPrompt = `Generate comprehensive interview feedback with the following components:
-1. An overall score between 70-95
+1. An overall score between ${interviewTooShort ? '0-30' : difficultyLevel === 'hard' ? '50-90' : difficultyLevel === 'medium' ? '60-90' : '65-95'}
 2. A detailed summary paragraph (150-200 words)
 3. 5 specific strengths demonstrated during the interview
 4. 5 specific areas for improvement
@@ -167,7 +204,15 @@ ${interviewDetails.llm_generated_context || 'A standard job interview for the sp
    - Problem-solving ability (score 0-100, 2-3 sentence feedback)
    - Relevant experience (score 0-100, 2-3 sentence feedback)
 
-${transcript ? `Here is the interview transcript to analyze:\n${transcript}` : 'No transcript is available for this interview, so provide general feedback based on the interview details.'}
+${transcript ? `Here is the interview transcript to analyze:\n${transcript}` : 'No transcript is available for this interview, so provide general feedback based on the interview details and be especially critical about the lack of data.'}
+
+${interviewTooShort ? 'IMPORTANT: The candidate left the interview after only a few minutes. This is extremely unprofessional and should result in a very low score. Be direct about how this behavior would be perceived in a real interview setting.' : ''}
+
+${difficultyLevel === 'hard' ? 'This is a HARD difficulty interview. Your feedback should be especially critical, looking for advanced mistakes and missed opportunities to demonstrate expertise.' : 
+  difficultyLevel === 'medium' ? 'This is a MEDIUM difficulty interview. Be thorough in identifying areas for improvement while acknowledging strengths.' : 
+  'This is an EASY difficulty interview, but you should still be critical and identify clear areas for improvement.'}
+
+Be direct and honest in your feedback. Do not sugar-coat issues. The candidate needs clear, actionable feedback to improve.
 
 Format your response as a JSON object with the following structure:
 {
@@ -231,55 +276,171 @@ Make the feedback specific to a ${interviewDetails.role} position at ${interview
 }
 
 // Function to generate mock feedback data
-function generateMockFeedback(interview: InterviewDetails): FeedbackResponse {
+function generateMockFeedback(interview: InterviewDetails, transcript?: string): FeedbackResponse {
   console.log('Generating mock feedback data for interview:', interview.id);
   
-  // Generate a random score between 70 and 95
-  const overallScore = Math.floor(Math.random() * 26) + 70;
+  // Calculate interview duration if completed_at is available
+  let interviewDuration = 0;
+  let interviewTooShort = false;
+  
+  if (interview.completed_at && interview.scheduled_at) {
+    const startTime = new Date(interview.scheduled_at).getTime();
+    const endTime = new Date(interview.completed_at).getTime();
+    interviewDuration = Math.round((endTime - startTime) / (1000 * 60)); // in minutes
+    
+    // Check if interview was too short (less than 20% of expected duration)
+    const expectedDuration = interview.duration || 20; // default to 20 minutes
+    interviewTooShort = interviewDuration < (expectedDuration * 0.2);
+  }
+  
+  // Get difficulty level
+  const difficultyLevel = interview.difficulty_levels?.value || 'medium';
+  
+  // Generate a score based on interview duration and difficulty
+  let overallScore;
+  if (interviewTooShort) {
+    // Very low score for extremely short interviews
+    overallScore = Math.floor(Math.random() * 20) + 5; // 5-25
+  } else if (difficultyLevel === 'hard') {
+    // Lower score range for hard interviews
+    overallScore = Math.floor(Math.random() * 31) + 55; // 55-85
+  } else if (difficultyLevel === 'medium') {
+    // Medium score range for medium difficulty
+    overallScore = Math.floor(Math.random() * 26) + 65; // 65-90
+  } else {
+    // Higher score range for easy interviews
+    overallScore = Math.floor(Math.random() * 21) + 70; // 70-90
+  }
   
   // Generate random skill scores that average to the overall score
-  const technicalScore = Math.min(100, Math.max(50, overallScore + (Math.random() * 20 - 10)));
-  const communicationScore = Math.min(100, Math.max(50, overallScore + (Math.random() * 20 - 10)));
-  const problemSolvingScore = Math.min(100, Math.max(50, overallScore + (Math.random() * 20 - 10)));
-  const experienceScore = Math.min(100, Math.max(50, overallScore + (Math.random() * 20 - 10)));
+  const technicalScore = interviewTooShort ? 
+    Math.floor(Math.random() * 20) + 5 : // 5-25 for short interviews
+    Math.min(100, Math.max(40, overallScore + (Math.random() * 20 - 10)));
+    
+  const communicationScore = interviewTooShort ? 
+    Math.floor(Math.random() * 20) + 5 : // 5-25 for short interviews
+    Math.min(100, Math.max(40, overallScore + (Math.random() * 20 - 10)));
+    
+  const problemSolvingScore = interviewTooShort ? 
+    Math.floor(Math.random() * 20) + 5 : // 5-25 for short interviews
+    Math.min(100, Math.max(40, overallScore + (Math.random() * 20 - 10)));
+    
+  const experienceScore = interviewTooShort ? 
+    Math.floor(Math.random() * 20) + 5 : // 5-25 for short interviews
+    Math.min(100, Math.max(40, overallScore + (Math.random() * 20 - 10)));
   
   // Determine feedback tone based on score
-  const tone = overallScore >= 85 ? 'excellent' : overallScore >= 75 ? 'good' : 'satisfactory';
+  let tone;
+  if (interviewTooShort) {
+    tone = 'poor';
+  } else if (overallScore >= 85) {
+    tone = 'excellent';
+  } else if (overallScore >= 75) {
+    tone = 'good';
+  } else if (overallScore >= 60) {
+    tone = 'satisfactory';
+  } else {
+    tone = 'unsatisfactory';
+  }
+  
+  // Create summary based on interview duration and performance
+  let summary;
+  if (interviewTooShort) {
+    summary = `The candidate did not complete the full interview, which is a significant issue. The interview lasted only about ${interviewDuration} minutes out of the expected ${interview.duration || 20} minutes. This premature termination prevented a thorough assessment of skills and qualifications. In a real interview setting, this would be viewed as highly unprofessional and would almost certainly disqualify the candidate from further consideration. The limited interaction that did occur showed ${tone === 'poor' ? 'major deficiencies' : 'some potential, but was far too brief to make a proper assessment'}.`;
+  } else {
+    summary = `The candidate demonstrated ${tone} understanding of ${interview.role} responsibilities and technical requirements. Their responses showed ${tone === 'excellent' ? 'strong' : tone === 'good' ? 'solid' : tone === 'satisfactory' ? 'adequate' : 'inadequate'} knowledge of key concepts and methodologies relevant to the position. The candidate articulated their thoughts ${tone === 'excellent' ? 'exceptionally well' : tone === 'good' ? 'clearly' : tone === 'satisfactory' ? 'adequately' : 'poorly'} and provided ${tone === 'excellent' ? 'comprehensive' : tone === 'good' ? 'relevant' : tone === 'satisfactory' ? 'basic' : 'insufficient'} examples from their past experience. Overall, this was a ${tone} interview performance that ${tone === 'unsatisfactory' ? 'raises significant concerns about' : 'demonstrates'} the candidate's potential for the ${interview.role} position.`;
+  }
+  
+  // Create strengths based on performance
+  let strengths;
+  if (interviewTooShort) {
+    strengths = [
+      "Unable to properly assess strengths due to premature termination of the interview",
+      "Insufficient interaction to identify meaningful strengths",
+      "Cannot evaluate technical capabilities due to limited engagement",
+      "Not enough time to demonstrate communication skills effectively",
+      "Incomplete interview prevents identification of potential strengths"
+    ];
+  } else {
+    strengths = [
+      `${tone === 'excellent' ? 'Exceptional' : tone === 'good' ? 'Strong' : tone === 'satisfactory' ? 'Adequate' : 'Basic'} technical knowledge of ${interview.interview_types?.type === 'technical' ? 'core technologies and frameworks' : 'industry concepts'}`,
+      `${tone === 'excellent' ? 'Excellent' : tone === 'good' ? 'Good' : tone === 'satisfactory' ? 'Satisfactory' : 'Limited'} communication skills with ${tone === 'unsatisfactory' ? 'occasionally unclear' : 'clear and structured'} responses`,
+      `${tone === 'excellent' ? 'Impressive' : tone === 'good' ? 'Solid' : tone === 'satisfactory' ? 'Basic' : 'Rudimentary'} problem-solving approach with ${tone === 'excellent' ? 'innovative' : tone === 'good' ? 'effective' : tone === 'satisfactory' ? 'standard' : 'simplistic'} solutions`,
+      `${tone === 'unsatisfactory' ? 'Some relevant' : 'Relevant'} experience that ${tone === 'unsatisfactory' ? 'partially aligns' : 'aligns well'} with the ${interview.role} position requirements`,
+      `${tone === 'excellent' ? 'Outstanding' : tone === 'good' ? 'Good' : tone === 'satisfactory' ? 'Adequate' : 'Minimal'} understanding of ${interview.company || 'company'} culture and values`
+    ];
+  }
+  
+  // Create improvements based on performance
+  let improvements;
+  if (interviewTooShort) {
+    improvements = [
+      "Complete the full interview duration to allow proper assessment",
+      "Demonstrate professional commitment by engaging for the entire scheduled time",
+      "Provide sufficient responses to technical questions to evaluate competency",
+      "Allow interviewers to assess communication skills through complete interaction",
+      "Show respect for the interview process by participating fully"
+    ];
+  } else {
+    improvements = [
+      `${difficultyLevel === 'hard' ? 'Provide much more detailed and sophisticated' : 'Provide more specific'} examples from past projects and achievements`,
+      `${tone === 'excellent' ? 'Minor improvements in' : tone === 'good' ? 'Should work on' : 'Needs to improve'} explaining complex technical concepts in simpler terms`,
+      `${tone === 'excellent' ? 'Could benefit from' : tone === 'good' ? 'Should consider' : 'Needs'} more focus on system design and architecture principles`,
+      `${tone === 'excellent' ? 'Could enhance' : tone === 'good' ? 'Should improve' : 'Needs to develop'} responses to behavioral questions with more structured examples`,
+      `${difficultyLevel === 'hard' ? 'Demonstrate deeper industry knowledge and awareness of cutting-edge developments' : 'Consider preparing more questions about the role and company to show deeper interest'}`
+    ];
+  }
   
   // Create mock feedback
   return {
     overall_score: overallScore,
-    summary: `The candidate demonstrated ${tone} understanding of ${interview.role} responsibilities and technical requirements. Their responses showed ${tone === 'excellent' ? 'strong' : tone === 'good' ? 'solid' : 'adequate'} knowledge of key concepts and methodologies relevant to the position. The candidate articulated their thoughts ${tone === 'excellent' ? 'exceptionally well' : tone === 'good' ? 'clearly' : 'adequately'} and provided ${tone === 'excellent' ? 'comprehensive' : tone === 'good' ? 'relevant' : 'basic'} examples from their past experience. Overall, this was a ${tone} interview performance that demonstrates the candidate's potential for the ${interview.role} position.`,
-    strengths: [
-      `${tone === 'excellent' ? 'Exceptional' : tone === 'good' ? 'Strong' : 'Adequate'} technical knowledge of ${interview.interview_types?.type === 'technical' ? 'core technologies and frameworks' : 'industry concepts'}`,
-      `${tone === 'excellent' ? 'Excellent' : tone === 'good' ? 'Good' : 'Satisfactory'} communication skills with clear and structured responses`,
-      `${tone === 'excellent' ? 'Impressive' : tone === 'good' ? 'Solid' : 'Basic'} problem-solving approach with ${tone === 'excellent' ? 'innovative' : tone === 'good' ? 'effective' : 'standard'} solutions`,
-      `Relevant experience that aligns well with the ${interview.role} position requirements`,
-      `${tone === 'excellent' ? 'Outstanding' : tone === 'good' ? 'Good' : 'Adequate'} understanding of ${interview.company || 'company'} culture and values`
-    ],
-    improvements: [
-      `Could provide more ${tone === 'excellent' ? 'detailed' : 'specific'} examples from past projects and achievements`,
-      `${tone === 'excellent' ? 'Minor improvements in' : tone === 'good' ? 'Should work on' : 'Needs to improve'} explaining complex technical concepts in simpler terms`,
-      `${tone === 'excellent' ? 'Could benefit from' : tone === 'good' ? 'Should consider' : 'Needs'} more focus on system design and architecture principles`,
-      `${tone === 'excellent' ? 'Could enhance' : tone === 'good' ? 'Should improve' : 'Needs to develop'} responses to behavioral questions with more structured examples`,
-      `Consider preparing more questions about the role and company to show deeper interest`
-    ],
+    summary,
+    strengths,
+    improvements,
     skill_assessment: {
       technical: {
         score: Math.round(technicalScore),
-        feedback: `The candidate demonstrated ${tone === 'excellent' ? 'exceptional' : tone === 'good' ? 'solid' : 'basic'} technical knowledge relevant to the ${interview.role} position. ${tone === 'excellent' ? 'Their understanding of core concepts was comprehensive and they showed impressive depth in specialized areas, including advanced topics and best practices.' : tone === 'good' ? 'They showed good understanding of most fundamental concepts and demonstrated practical experience, though could deepen knowledge in some advanced areas.' : 'They covered basic concepts adequately but would benefit from strengthening their technical foundation in key areas.'}`
+        feedback: interviewTooShort ? 
+          `Unable to properly assess technical skills due to the premature termination of the interview. The limited interaction did not provide sufficient evidence of technical competence for the ${interview.role} position.` :
+          `The candidate demonstrated ${tone === 'excellent' ? 'exceptional' : tone === 'good' ? 'solid' : tone === 'satisfactory' ? 'basic' : 'insufficient'} technical knowledge relevant to the ${interview.role} position. ${
+            tone === 'excellent' ? 'Their understanding of core concepts was comprehensive and they showed impressive depth in specialized areas, including advanced topics and best practices.' : 
+            tone === 'good' ? 'They showed good understanding of most fundamental concepts and demonstrated practical experience, though could deepen knowledge in some advanced areas.' : 
+            tone === 'satisfactory' ? 'They covered basic concepts adequately but would benefit from strengthening their technical foundation in key areas.' :
+            'They showed significant gaps in understanding of fundamental concepts required for this role and would need substantial improvement to meet expectations.'
+          }`
       },
       communication: {
         score: Math.round(communicationScore),
-        feedback: `Communication was ${tone === 'excellent' ? 'exceptional and highly professional' : tone === 'good' ? 'clear and effective' : 'adequate with room for improvement'}. The candidate ${tone === 'excellent' ? 'articulated complex ideas with precision, clarity, and confidence, demonstrating excellent listening skills and thoughtful responses' : tone === 'good' ? 'expressed ideas clearly, maintained good structure in their responses, and showed active engagement throughout the conversation' : 'conveyed basic ideas but sometimes lacked clarity in explanations and could improve their response structure'}.`
+        feedback: interviewTooShort ? 
+          `Communication assessment was severely limited by the short duration of the interview. The candidate did not provide enough interaction to evaluate their communication skills properly.` :
+          `Communication was ${tone === 'excellent' ? 'exceptional and highly professional' : tone === 'good' ? 'clear and effective' : tone === 'satisfactory' ? 'adequate with room for improvement' : 'problematic and often unclear'}. The candidate ${
+            tone === 'excellent' ? 'articulated complex ideas with precision, clarity, and confidence, demonstrating excellent listening skills and thoughtful responses' : 
+            tone === 'good' ? 'expressed ideas clearly, maintained good structure in their responses, and showed active engagement throughout the conversation' : 
+            tone === 'satisfactory' ? 'conveyed basic ideas but sometimes lacked clarity in explanations and could improve their response structure' :
+            'struggled to articulate ideas clearly, often provided disorganized or incomplete responses, and showed limited active listening skills'
+          }.`
       },
       problem_solving: {
         score: Math.round(problemSolvingScore),
-        feedback: `Problem-solving approach was ${tone === 'excellent' ? 'sophisticated, thorough, and highly analytical' : tone === 'good' ? 'methodical and effective' : 'straightforward but sometimes limited in scope'}. The candidate ${tone === 'excellent' ? 'demonstrated excellent analytical skills, creative thinking, and the ability to break down complex problems into manageable components with innovative solutions' : tone === 'good' ? 'showed good analytical thinking, systematic approach to problems, and ability to work through challenges logically' : 'applied basic problem-solving techniques but missed some optimization opportunities and could benefit from more structured approaches'}.`
+        feedback: interviewTooShort ? 
+          `Problem-solving abilities could not be adequately assessed due to the abbreviated interview. The candidate did not engage with enough problem scenarios to demonstrate their capabilities.` :
+          `Problem-solving approach was ${tone === 'excellent' ? 'sophisticated, thorough, and highly analytical' : tone === 'good' ? 'methodical and effective' : tone === 'satisfactory' ? 'straightforward but sometimes limited in scope' : 'inadequate and lacked depth'}. The candidate ${
+            tone === 'excellent' ? 'demonstrated excellent analytical skills, creative thinking, and the ability to break down complex problems into manageable components with innovative solutions' : 
+            tone === 'good' ? 'showed good analytical thinking, systematic approach to problems, and ability to work through challenges logically' : 
+            tone === 'satisfactory' ? 'applied basic problem-solving techniques but missed some optimization opportunities and could benefit from more structured approaches' :
+            'showed significant weaknesses in analytical thinking, often failed to understand the core problems, and provided simplistic or incorrect solutions'
+          }.`
       },
       experience: {
         score: Math.round(experienceScore),
-        feedback: `The candidate's experience is ${tone === 'excellent' ? 'highly relevant, extensive, and directly applicable' : tone === 'good' ? 'relevant and adequate' : 'somewhat relevant but may need additional development'} for the ${interview.role} position. They ${tone === 'excellent' ? 'have clearly worked on similar projects, technologies, and challenges, demonstrating deep practical knowledge and leadership experience' : tone === 'good' ? 'have worked with most of the required technologies and shown good practical application of their skills in real-world scenarios' : 'have some experience with the required technologies but may need additional training and hands-on practice to fully meet the role requirements'}.`
+        feedback: interviewTooShort ? 
+          `Experience evaluation was incomplete due to the candidate's early departure from the interview. There was insufficient time to explore their background and relevant experience.` :
+          `The candidate's experience is ${tone === 'excellent' ? 'highly relevant, extensive, and directly applicable' : tone === 'good' ? 'relevant and adequate' : tone === 'satisfactory' ? 'somewhat relevant but may need additional development' : 'largely insufficient'} for the ${interview.role} position. They ${
+            tone === 'excellent' ? 'have clearly worked on similar projects, technologies, and challenges, demonstrating deep practical knowledge and leadership experience' : 
+            tone === 'good' ? 'have worked with most of the required technologies and shown good practical application of their skills in real-world scenarios' : 
+            tone === 'satisfactory' ? 'have some experience with the required technologies but may need additional training and hands-on practice to fully meet the role requirements' :
+            'lack critical experience with key technologies and methodologies required for this role, showing significant gaps that would require extensive training to address'
+          }.`
       }
     }
   };
