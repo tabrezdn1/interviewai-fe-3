@@ -358,7 +358,7 @@ serve(async (req) => {
               persona_id: personaId,
               conversation_name: `${request.role} Interview - ${new Date().toISOString()}`,
               properties: {
-                apply_greenscreen: true,
+                apply_greenscreen: false,
                 max_call_duration: 3600, // 1 hour
                 participant_left_timeout: 60,
                 participant_absent_timeout: 300,
