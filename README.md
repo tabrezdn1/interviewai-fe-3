@@ -179,7 +179,7 @@ Users can view a detailed feedback report, including an overall score, summary, 
 graph TD
     A[Feedback Analysis Page] --> B[Overall Score];
     A --> C[Summary & Recommendations];
-    A --> D[Skill Assessment (Technical, Communication, Problem-Solving, Experience)];
+    A --> D[Skill Assessment Details];
     A --> E[Interview Transcript];
     A --> F[Tavus AI Analysis];
     B & C & D & E & F --> G[Actionable Insights for User Improvement];
