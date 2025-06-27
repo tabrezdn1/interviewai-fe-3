@@ -613,53 +613,81 @@ const FeedbackAnalysis: React.FC = () => {
               transition={{ duration: 0.3, delay: 0.2 }}
               className="sticky top-24"
             >
-              <Card className="mb-6">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-semibold text-lg">Overall Score</h3>
-                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                      <BarChart2 className="h-5 w-5 text-primary-600" />
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-center mb-4">
-                    <div className="relative w-32 h-32">
-                      <svg className="w-full h-full" viewBox="0 0 100 100">
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="45"
-                          fill="none"
-                          stroke="#e5e7eb"
-                          strokeWidth="10"
-                        />
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="45"
-                          fill="none"
-                          stroke={getScoreColor(feedbackData.overallScore)}
-                          strokeWidth="10"
-                          strokeDasharray={`${2 * Math.PI * 45 * feedbackData.overallScore / 100} ${2 * Math.PI * 45 * (1 - feedbackData.overallScore / 100)}`}
-                          strokeDashoffset={2 * Math.PI * 45 * 0.25}
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-3xl font-bold">{feedbackData.overallScore}</span>
+              {feedbackData.processing_status === 'processing' ? (
+                <Card className="mb-6">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="font-semibold text-lg">Generating Feedback</h3>
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="text-center mb-6">
-                    <p className="text-lg font-medium">
-                      {getScoreRating(feedbackData.overallScore)}
-                    </p>
-                  </div>
-                  
-                  
-                </CardContent>
-              </Card>
+                    
+                    <div className="flex flex-col items-center justify-center mb-4">
+                      <div className="relative w-32 h-32 flex items-center justify-center">
+                        <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+                        <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+                        <div className="text-center">
+                          <p className="text-lg font-medium text-gray-600">Generating</p>
+                          <p className="text-sm text-gray-500">Please wait</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center mb-6">
+                      <p className="text-sm text-gray-600">
+                        Your feedback is being generated. This may take a few minutes.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="mb-6">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="font-semibold text-lg">Overall Score</h3>
+                      <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                        <BarChart2 className="h-5 w-5 text-primary-600" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="relative w-32 h-32">
+                        <svg className="w-full h-full" viewBox="0 0 100 100">
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="45"
+                            fill="none"
+                            stroke="#e5e7eb"
+                            strokeWidth="10"
+                          />
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="45"
+                            fill="none"
+                            stroke={getScoreColor(feedbackData.overallScore)}
+                            strokeWidth="10"
+                            strokeDasharray={`${2 * Math.PI * 45 * feedbackData.overallScore / 100} ${2 * Math.PI * 45 * (1 - feedbackData.overallScore / 100)}`}
+                            strokeDashoffset={2 * Math.PI * 45 * 0.25}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-3xl font-bold">{feedbackData.overallScore}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center mb-6">
+                      <p className="text-lg font-medium">
+                        {getScoreRating(feedbackData.overallScore)}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
               
               <Card>
                 <CardHeader>

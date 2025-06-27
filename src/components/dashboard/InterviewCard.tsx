@@ -159,9 +159,15 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
       </div>
       
       <div className="flex items-center gap-3">
-        {isCompleted && interview.score && (
+        {isCompleted && interview.score && interview.feedback_processing_status === 'completed' && (
           <div className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">
             Score: {interview.score}%
+          </div>
+        )}
+        {isCompleted && interview.feedback_processing_status === 'processing' && (
+          <div className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium flex items-center gap-1">
+            <div className="h-2 w-2 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+            <span>Processing...</span>
           </div>
         )}
         
