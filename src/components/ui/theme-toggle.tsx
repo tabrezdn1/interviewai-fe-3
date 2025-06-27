@@ -10,15 +10,14 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   className = '', 
   size = 'md' 
 }) => {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Check for saved theme preference or default to system preference
+    // Check for saved theme preference or default to dark theme
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const currentTheme = savedTheme || systemTheme;
+    const currentTheme = savedTheme || 'dark';
     
     setTheme(currentTheme);
     applyTheme(currentTheme);

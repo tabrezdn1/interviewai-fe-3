@@ -32,6 +32,20 @@
     <meta name="language" content="English" />
     <meta name="theme-color" content="#3b82f6" />
     
+    <!-- Theme initialization script to prevent flash of light theme -->
+    <script>
+      // Check for saved theme preference or default to dark theme
+      const savedTheme = localStorage.getItem('theme');
+      const theme = savedTheme || 'dark';
+      
+      // Apply theme immediately to prevent flash
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+    
     <title>Master Interviews with AI - InterviewAI</title>
   </head>
   <body>
