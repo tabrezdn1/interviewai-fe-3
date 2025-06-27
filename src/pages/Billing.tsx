@@ -191,7 +191,7 @@ const Billing: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-black pt-24 pb-12 relative overflow-hidden">
       <div className="container-custom mx-auto">
         <Breadcrumb />
         <motion.div
@@ -224,17 +224,17 @@ const Billing: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
             >
-              <Card>
+              <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 dark:text-slate-100">
                         {getPlanIconComponent('Star')}
                         Current Subscription
                       </CardTitle>
                       <CardDescription>Your active plan and usage</CardDescription>
                     </div>
-                    <Badge variant="success" className="bg-green-100 text-green-800">
+                    <Badge variant="success" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                       {currentSubscription.status}
                     </Badge>
                   </div>
@@ -429,35 +429,35 @@ const Billing: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.3 }}
               >
-                <Card>
+                <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 dark:text-slate-100">
                       <Calendar className="h-5 w-5 text-primary" />
                       Billing History
                     </CardTitle>
-                    <CardDescription>Your recent invoices and payments</CardDescription>
+                    <CardDescription className="dark:text-slate-300">Your recent invoices and payments</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       {invoices && invoices.length > 0 ? (
-                        <div className="overflow-x-auto">
-                          {invoices.map((invoice) => (
+                        <div className="overflow-y-auto max-h-96 custom-scrollbar pr-2">
+                          {invoices.slice(0, 3).map((invoice) => (
                             <div
                               key={invoice.id}
-                              className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-lg mb-3"
+                              className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 dark:border-slate-700 rounded-lg mb-3 bg-white dark:bg-slate-800/80"
                             >
                               <div>
-                                <p className="font-medium">{invoice.description}</p>
-                                <p className="text-sm text-gray-500">
+                                <p className="font-medium dark:text-slate-100">{invoice.description}</p>
+                                <p className="text-sm text-gray-500 dark:text-slate-400">
                                   {new Date(invoice.date).toLocaleDateString()} • {invoice.invoice}
                                 </p>
                               </div>
                               <div className="flex items-center gap-3 mt-2 sm:mt-0">
                                 <div className="text-right">
-                                  <p className="font-medium">{invoice.amount}</p>
+                                  <p className="font-medium dark:text-slate-100">{invoice.amount}</p>
                                   <Badge 
                                     variant={invoice.status === 'paid' ? 'success' : 'outline'}
-                                    className={invoice.status === 'paid' ? 'bg-green-100 text-green-800' : ''}
+                                    className={invoice.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : ''}
                                   >
                                     {invoice.status}
                                   </Badge>
@@ -476,7 +476,7 @@ const Billing: React.FC = () => {
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-6 text-gray-500">
+                        <div className="text-center py-6 text-gray-500 dark:text-slate-400">
                           <p>No billing history available yet.</p>
                         </div>
                       )}

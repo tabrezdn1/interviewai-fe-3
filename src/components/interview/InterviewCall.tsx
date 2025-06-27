@@ -156,29 +156,27 @@ const InterviewCall: React.FC<InterviewCallProps> = ({
   // Show ready state - user needs to click to start
   if (activeConversation && callState === 'ready') {
     return (
-      <div className={`flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl ${className}`}>
-        <div className="text-center text-white p-12 max-w-lg">
+      <div className={`flex items-center justify-center min-h-[70vh] transition-colors duration-500 bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-black dark:via-black dark:to-black rounded-xl ${className}`}>
+        <div className="text-center p-12 max-w-lg">
           <div className="relative w-20 h-20 mx-auto mb-6">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-400 to-blue-500 animate-pulse"></div>
-            <div className="relative w-full h-full rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-              <PhoneOff className="h-8 w-8 text-white" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-400 to-blue-500 dark:from-blue-700 dark:to-purple-700 animate-pulse"></div>
+            <div className="relative w-full h-full rounded-full bg-white/10 dark:bg-black/30 backdrop-blur-sm border border-white/20 dark:border-blue-900 flex items-center justify-center">
+              <PhoneOff className="h-8 w-8 text-blue-700 dark:text-blue-300" />
             </div>
           </div>
           
-          <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-            Ready to Connect
-          </h3>
-          <p className="text-gray-300 text-base mb-6 leading-relaxed">
+          <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-blue-700 to-purple-700 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent transition-colors">Ready to Connect</h3>
+          <p className="text-gray-600 dark:text-gray-300 text-base mb-6 leading-relaxed transition-colors">
             Your AI interviewer is ready and waiting. Click below to begin your interview session.
           </p>
           
           <Button 
             onClick={handleStartCall}
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            className="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-700 dark:to-purple-700 hover:from-blue-600 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-purple-800 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
           >
             <span className="flex items-center gap-2">
               Start Interview
-              <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+              <div className="w-2 h-2 rounded-full bg-white dark:bg-blue-300 animate-pulse"></div>
             </span>
           </Button>
         </div>

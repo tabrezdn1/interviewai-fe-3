@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Home } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { Button } from '../ui/button';
 
 interface BackButtonProps {
@@ -64,7 +64,7 @@ const BackButton: React.FC<BackButtonProps> = ({
       onClick={handleBack}
       variant="ghost"
       size="sm"
-      className={`flex items-center gap-2 text-gray-600 hover:text-gray-900 ${className}`}
+      className={`flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-slate-300 dark:hover:text-white ${className}`}
     >
       <ChevronLeft className="h-4 w-4" />
       {getBackLabel()}

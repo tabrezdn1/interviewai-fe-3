@@ -108,14 +108,43 @@ const Login: React.FC = () => {
   }
   
   return (
-    <div className="min-h-screen pt-24 bg-muted/30 flex items-center justify-center px-4">
+    <div className="min-h-screen pt-24 flex items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+      {/* Glassmorphism blurred layer */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[60vh] rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl shadow-2xl" />
+        {/* Subtle animated bubbles */}
+        {Array.from({ length: 8 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20 dark:from-blue-700/10 dark:to-purple-700/10"
+            style={{
+              width: Math.random() * 120 + 60,
+              height: Math.random() * 120 + 60,
+              top: `${Math.random() * 90}%`,
+              left: `${Math.random() * 90}%`,
+            }}
+            animate={{
+              y: [0, Math.random() * 40 - 20],
+              x: [0, Math.random() * 40 - 20],
+              scale: [1, 1.1, 1],
+              opacity: [0.12, 0.22, 0.12],
+            }}
+            transition={{
+              duration: 12 + Math.random() * 8,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md z-10"
       >
-        <Card className="border shadow-md">
+        <Card className="border border-white/40 dark:border-slate-700/60 shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
           <CardHeader className="text-center space-y-1">
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -144,7 +173,7 @@ const Login: React.FC = () => {
                 <Button
                   onClick={() => handleOAuthLogin('google')}
                   variant="outline"
-                  className="w-full justify-center gap-3"
+                  className="w-full justify-center gap-3 hover:bg-blue-700 dark:hover:bg-blue-600"
                   disabled={isSubmitting}
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -171,7 +200,7 @@ const Login: React.FC = () => {
                 <Button
                   onClick={() => handleOAuthLogin('github')}
                   variant="outline"
-                  className="w-full justify-center gap-3 bg-gray-900 text-white hover:bg-gray-800 border-gray-900"
+                  className="w-full justify-center gap-3 bg-gray-900 text-white border-gray-900 hover:bg-blue-700 dark:hover:bg-blue-600"
                   disabled={isSubmitting}
                 >
                   <Github className="h-5 w-5" />
@@ -190,7 +219,7 @@ const Login: React.FC = () => {
                 <Button
                   onClick={() => setFormMode('email')}
                   variant="outline"
-                  className="w-full justify-center gap-3"
+                  className="w-full justify-center gap-3 hover:bg-blue-700 dark:hover:bg-blue-600"
                 >
                   <Mail className="h-5 w-5" />
                   Continue with Email

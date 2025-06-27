@@ -245,8 +245,42 @@ const InterviewSetup: React.FC = () => {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
-      <div className="container-custom mx-auto">
+    <div className="min-h-screen pt-24 pb-12 relative overflow-hidden">
+      {/* Full-screen fixed gradient background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        {/* Light theme: soft blue/purple gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />
+        {/* Dark theme: pure black background only */}
+        <div className="absolute inset-0 hidden dark:block bg-black" />
+      </div>
+      {/* Subtle animated bubbles */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20 dark:from-blue-700/10 dark:to-purple-700/10"
+            style={{
+              width: Math.random() * 100 + 40,
+              height: Math.random() * 100 + 40,
+              top: `${Math.random() * 80 + 10}%`,
+              left: `${Math.random() * 80 + 10}%`,
+            }}
+            animate={{
+              y: [0, Math.random() * 30 - 15],
+              x: [0, Math.random() * 30 - 15],
+              scale: [1, 1.08, 1],
+              opacity: [0.10, 0.18, 0.10],
+            }}
+            transition={{
+              duration: 16 + Math.random() * 8,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </div>
+      <div className="container-custom mx-auto relative z-10">
         <div className="hidden md:block">
           <Breadcrumb />
         </div>
@@ -258,19 +292,19 @@ const InterviewSetup: React.FC = () => {
         >
           <BackButton className="mb-4" />
           <h1 className="text-3xl font-bold mb-2">Setup Interview</h1>
-          <p className="text-gray-600">
+          <p className="text-slate-600 dark:text-slate-300">
             Configure your AI interview session based on your needs
           </p>
         </motion.div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
             >
-              <Card className="border-0 shadow-md">
+              <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl">
                 <CardContent className="p-6 md:p-8">
                   {/* Progress indicator */}
                   <div className="mb-10">
@@ -281,10 +315,10 @@ const InterviewSetup: React.FC = () => {
                           <div key={stepNumber} className="flex flex-col items-center">
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                               step > stepNumber 
-                                ? 'bg-primary-600 text-white shadow-md shadow-primary-200' 
+                                ? 'bg-blue-600 text-white shadow-md shadow-blue-300 dark:bg-blue-500 dark:shadow-blue-700' 
                                 : step === stepNumber 
-                                  ? 'bg-primary-600 text-white shadow-md shadow-primary-200 ring-4 ring-primary-100' 
-                                  : 'bg-gray-200 text-gray-600'
+                                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-300 ring-4 ring-blue-200 dark:bg-blue-500 dark:shadow-blue-700 dark:ring-blue-900' 
+                                  : 'bg-gray-200 text-gray-600 dark:bg-slate-800 dark:text-slate-400'
                             } z-10 transition-all duration-300`}>
                               {step > stepNumber ? <Check className="h-5 w-5" /> : stepNumber}
                             </div>
@@ -343,7 +377,7 @@ const InterviewSetup: React.FC = () => {
                       
                       <div className="space-y-6">
                         <div>
-                          <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+                          <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                             Job Title / Role
                           </label>
                           <input
@@ -353,7 +387,7 @@ const InterviewSetup: React.FC = () => {
                             value={formData.role}
                             onChange={handleInputChange}
                             placeholder="e.g. Frontend Developer, Product Manager"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-slate-900/80 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
                             required
                           />
                         </div>
@@ -362,24 +396,24 @@ const InterviewSetup: React.FC = () => {
                         <div>
                           <div className="flex items-center gap-2 mb-4">
                             <Sparkles className="h-4 w-4 text-primary-600" />
-                            <h3 className="text-sm font-medium text-gray-700">Quick Select: Popular Job Roles</h3>
+                            <h3 className="text-sm font-medium text-gray-700 dark:text-slate-200">Quick Select: Popular Job Roles</h3>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {jobSuggestions.map((suggestion, index) => (
                               <button
                                 key={index}
                                 onClick={() => handleJobSuggestionSelect(suggestion)}
-                                className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 hover:shadow-sm transition-all text-left group"
+                                className="flex items-center gap-2 p-3 border border-gray-200 dark:border-slate-700 rounded-lg hover:border-primary-300 hover:bg-primary-50 dark:hover:border-primary-700 dark:hover:bg-primary-900/10 hover:shadow-sm transition-all text-left group bg-white dark:bg-slate-900/80"
                               >
                                 <div className="flex-shrink-0">
-                                  <div className="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-primary-100 flex items-center justify-center transition-colors">
+                                  <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-800 group-hover:bg-primary-100 dark:group-hover:bg-primary-900 flex items-center justify-center transition-colors">
                                     {suggestion.icon}
                                   </div>
                                 </div>
                                 <div className="overflow-hidden">
-                                  <p className="font-medium text-sm truncate">{suggestion.role}</p>
+                                  <p className="font-medium text-sm truncate text-gray-900 dark:text-slate-100">{suggestion.role}</p>
                                   {suggestion.company && (
-                                    <p className="text-xs text-gray-500 truncate">{suggestion.company}</p>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{suggestion.company}</p>
                                   )}
                                 </div>
                               </button>
@@ -388,7 +422,7 @@ const InterviewSetup: React.FC = () => {
                         </div>
                         
                         <div>
-                          <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
+                          <label htmlFor="company" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                             Company <span className="text-red-500">*</span>
                           </label>
                           <input
@@ -398,13 +432,13 @@ const InterviewSetup: React.FC = () => {
                             value={formData.company}
                             onChange={handleInputChange}
                             placeholder="e.g. Google, Amazon, Startup"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-slate-900/80 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
                             required
                           />
                         </div>
                         
                         <div>
-                          <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-2">
+                          <label htmlFor="experience" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                             Your Experience Level <span className="text-red-500">*</span>
                           </label>
                           <select
@@ -412,7 +446,7 @@ const InterviewSetup: React.FC = () => {
                             name="experience"
                             value={formData.experience}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-slate-900/80 text-gray-900 dark:text-slate-100"
                             required
                           >
                             <option value="">Select experience level</option>
@@ -440,17 +474,17 @@ const InterviewSetup: React.FC = () => {
                       
                       <div className="space-y-6">
                         {/* Schedule Section */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 shadow-sm">
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 shadow-sm dark:bg-blue-900/30 dark:border-blue-800">
                           <div className="flex items-center gap-3 mb-5">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                              <Calendar className="h-5 w-5 text-blue-600" />
+                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
+                              <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-300" />
                             </div>
-                            <h3 className="font-semibold text-blue-900 text-lg">Interview Schedule</h3>
+                            <h3 className="font-semibold text-blue-900 dark:text-blue-100 text-lg">Interview Schedule</h3>
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                              <label htmlFor="scheduledDate" className="block text-sm font-medium text-blue-800 mb-2">
+                              <label htmlFor="scheduledDate" className="block text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
                                 Date
                               </label>
                               <input
@@ -460,13 +494,13 @@ const InterviewSetup: React.FC = () => {
                                 value={formData.scheduledDate}
                                 onChange={handleInputChange}
                                 min={new Date().toISOString().split('T')[0]}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-slate-900/80 text-gray-900 dark:text-slate-100"
                                 required
                               />
                             </div>
                             
                             <div>
-                              <label htmlFor="scheduledTime" className="block text-sm font-medium text-blue-800 mb-2">
+                              <label htmlFor="scheduledTime" className="block text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
                                 Time
                               </label>
                               <input
@@ -475,13 +509,13 @@ const InterviewSetup: React.FC = () => {
                                 name="scheduledTime"
                                 value={formData.scheduledTime}
                                 onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-slate-900/80 text-gray-900 dark:text-slate-100"
                                 required
                               />
                             </div>
                           </div>
                           
-                          <div className="mt-4 text-sm text-blue-700 flex items-center gap-2 bg-blue-100 p-3 rounded-lg">
+                          <div className="mt-4 text-sm text-blue-700 flex items-center gap-2 bg-blue-100 p-3 rounded-lg dark:bg-blue-900/40 dark:text-blue-200">
                             <CalendarDays className="h-4 w-4 inline mr-1" />
                             Scheduled for {new Date(`${formData.scheduledDate}T${formData.scheduledTime}`).toLocaleDateString('en-US', { 
                               weekday: 'long', 
@@ -497,19 +531,19 @@ const InterviewSetup: React.FC = () => {
                         {/* Settings Section */}
                         <div>
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                              <Shield className="h-4 w-4 text-indigo-600" />
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-800 flex items-center justify-center">
+                              <Shield className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
                             </div>
-                            <h3 className="font-medium text-gray-900">Interview Settings</h3>
+                            <h3 className="font-medium text-gray-900 dark:text-slate-100">Interview Settings</h3>
                           </div>
                           
-                          <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 mb-2">Difficulty Level</label>
+                          <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Difficulty Level</label>
                           <select
                             id="difficulty"
                             name="difficulty"
                             value={formData.difficulty}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-slate-900/80 text-gray-900 dark:text-slate-100"
                           >
                             {difficultyLevels.map(level => (
                               <option key={level.value} value={level.value}>{level.label}</option>
@@ -518,7 +552,7 @@ const InterviewSetup: React.FC = () => {
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Interview Duration (minutes)</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Interview Duration (minutes)</label>
                           <div className="flex items-center gap-4">
                             <input
                               type="range"
@@ -528,11 +562,11 @@ const InterviewSetup: React.FC = () => {
                               step="5"
                               value={formData.duration}
                               onChange={handleInputChange} 
-                              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                              className="w-full h-2 bg-gray-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary-600"
                             />
-                            <span className="w-16 text-center font-medium px-3 py-1 bg-primary-100 text-primary-800 rounded-full">{formData.duration} min</span>
+                            <span className="w-16 text-center font-medium px-3 py-1 bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 rounded-full">{formData.duration} min</span>
                           </div> 
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                             This interview will use {formData.duration} minutes of your conversation time.
                           </p>
                         </div>
@@ -550,79 +584,79 @@ const InterviewSetup: React.FC = () => {
                     >
                       <h2 className="text-2xl font-semibold mb-8 text-center">Review & Confirm</h2>
                       
-                      <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
-                        <h3 className="font-semibold text-lg mb-6 text-center">Interview Summary</h3>
+                      <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm dark:bg-slate-900/80 dark:border-slate-700">
+                        <h3 className="font-semibold text-lg mb-6 text-center text-gray-900 dark:text-slate-100">Interview Summary</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                           <div className="space-y-4">
-                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                                <MessageSquare className="h-4 w-4 text-primary-600" />
+                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm dark:bg-slate-800/80 dark:border-slate-700">
+                              <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                                <MessageSquare className="h-4 w-4 text-primary-600 dark:text-primary-300" />
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Interview Type</p>
-                                <p className="font-medium text-gray-900 capitalize">{formData.interviewType}</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">Interview Type</p>
+                                <p className="font-medium text-gray-900 dark:text-slate-100 capitalize">{formData.interviewType}</p>
                               </div>
                             </div>
                             
-                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                <Briefcase className="h-4 w-4 text-blue-600" />
+                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm dark:bg-slate-800/80 dark:border-slate-700">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-300" />
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Role</p>
-                                <p className="font-medium text-gray-900">{formData.role || 'Not specified'}</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">Role</p>
+                                <p className="font-medium text-gray-900 dark:text-slate-100">{formData.role || 'Not specified'}</p>
                               </div>
                             </div>
                             
-                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                              <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                                <Building className="h-4 w-4 text-indigo-600" />
+                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm dark:bg-slate-800/80 dark:border-slate-700">
+                              <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                                <Building className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Company</p>
-                                <p className="font-medium text-gray-900">{formData.company || 'Not specified'}</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">Company</p>
+                                <p className="font-medium text-gray-900 dark:text-slate-100">{formData.company || 'Not specified'}</p>
                               </div>
                             </div>
                             
-                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                                <User className="h-4 w-4 text-green-600" />
+                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm dark:bg-slate-800/80 dark:border-slate-700">
+                              <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                                <User className="h-4 w-4 text-green-600 dark:text-green-300" />
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Experience Level</p>
-                                <p className="font-medium text-gray-900 capitalize">{formData.experience || 'Not specified'}</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">Experience Level</p>
+                                <p className="font-medium text-gray-900 dark:text-slate-100 capitalize">{formData.experience || 'Not specified'}</p>
                               </div>
                             </div>
                           </div>
                           
                           <div className="space-y-4">
-                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                              <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                                <Award className="h-4 w-4 text-amber-600" />
+                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm dark:bg-slate-800/80 dark:border-slate-700">
+                              <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                                <Award className="h-4 w-4 text-amber-600 dark:text-amber-300" />
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Difficulty Level</p>
-                                <p className="font-medium text-gray-900 capitalize">{formData.difficulty}</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">Difficulty Level</p>
+                                <p className="font-medium text-gray-900 dark:text-slate-100 capitalize">{formData.difficulty}</p>
                               </div>
                             </div>
                             
-                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                              <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                                <Clock className="h-4 w-4 text-purple-600" />
+                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm dark:bg-slate-800/80 dark:border-slate-700">
+                              <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                                <Clock className="h-4 w-4 text-purple-600 dark:text-purple-300" />
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Duration</p>
-                                <p className="font-medium text-gray-900">{formData.duration} minutes</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">Duration</p>
+                                <p className="font-medium text-gray-900 dark:text-slate-100">{formData.duration} minutes</p>
                               </div>
                             </div>
                             
-                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                              <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                                <Calendar className="h-4 w-4 text-red-600" />
+                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm dark:bg-slate-800/80 dark:border-slate-700">
+                              <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                                <Calendar className="h-4 w-4 text-red-600 dark:text-red-300" />
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Scheduled For</p>
-                                <p className="font-medium text-gray-900">
+                                <p className="text-xs text-gray-500 dark:text-slate-400">Scheduled For</p>
+                                <p className="font-medium text-gray-900 dark:text-slate-100">
                                   {new Date(`${formData.scheduledDate}T${formData.scheduledTime}`).toLocaleDateString('en-US', { 
                                     month: 'short', 
                                     day: 'numeric',
@@ -635,12 +669,12 @@ const InterviewSetup: React.FC = () => {
                           </div>
                         </div>
                         
-                        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg shadow-sm">
+                        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg shadow-sm dark:bg-green-900/30 dark:border-green-800">
                           <div className="flex items-start gap-3">
-                            <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                            <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-300 flex-shrink-0 mt-0.5" />
                             <div>
-                              <p className="text-base font-medium text-green-800">Ready to Schedule</p>
-                              <p className="text-sm text-green-700 mt-1">
+                              <p className="text-base font-medium text-green-800 dark:text-green-200">Ready to Schedule</p>
+                              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
                                 Your interview is configured and ready. You can save it for later or start immediately.
                               </p>
                             </div>
@@ -707,44 +741,37 @@ const InterviewSetup: React.FC = () => {
               animate={{ opacity: 1, y: 0 }} 
               transition={{ duration: 0.3, delay: 0.2 }}
             >
-              <Card className="border-0 shadow-md sticky top-24">
-                <CardContent className="p-6 md:p-8">
-                  <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5 text-amber-500" />
-                    <span>Tips for Success</span>
-                  </h3>
-                  <ul className="space-y-4">
-                    {interviewTips.slice(0, 4).map((tip, index) => (
-                      <li key={index} className="flex gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                        <div className="w-8 h-8 rounded-full bg-success-100 flex-shrink-0 flex items-center justify-center mt-0.5">
-                          <Check className="h-5 w-5 text-success-600" />
-                        </div>
-                        <p className="text-sm">
-                          <span className="font-medium text-gray-900 block mb-1">{tip.title}</span>
-                          {tip.description}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <div className="mt-8 pt-6 border-t border-gray-200">
-                    <div className="flex items-center gap-3 mb-4 bg-blue-50 p-3 rounded-lg">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Clock className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-blue-900">Average Duration</h4>
-                        <p className="text-sm text-blue-700 mt-1">
-                          20-30 minutes per interview
-                        </p>
-                      </div>
+              <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+                <Lightbulb className="h-5 w-5 text-amber-500" />
+                <span>Tips for Success</span>
+              </h3>
+              <ul className="space-y-4">
+                {interviewTips.slice(0, 4).map((tip, index) => (
+                  <li key={index} className="flex gap-3 p-3 rounded-lg bg-slate-50 border border-gray-100 dark:bg-slate-800/80 dark:border-slate-700">
+                    <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold block mb-0.5">{tip.title}</span>
+                      <span className="text-sm text-slate-500 dark:text-slate-300">{tip.description}</span>
                     </div>
-                    <p className="text-sm text-gray-600 mt-4">
-                      You can adjust the duration based on your availability and the complexity of the role you're preparing for.
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
+                <div className="flex items-center gap-3 mb-4 bg-blue-50 p-3 rounded-lg dark:bg-blue-900/40">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center dark:bg-blue-900">
+                    <Clock className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-blue-900 dark:text-blue-200">Average Duration</h4>
+                    <p className="text-sm text-blue-700 mt-1 dark:text-blue-300">
+                      20-30 minutes per interview
                     </p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <p className="text-sm text-gray-600 mt-4 dark:text-slate-300">
+                  You can adjust the duration based on your availability and the complexity of the role you're preparing for.
+                </p>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -772,11 +799,11 @@ const InterviewTypeCard: React.FC<InterviewTypeCardProps> = ({
 }) => {
   return (
     <div
-      className={`border-2 rounded-xl p-5 cursor-pointer transition-all ${
-        selected
-          ? 'border-primary-600 bg-primary-50 shadow-md'
-          : 'border-gray-200 hover:border-primary-200 hover:bg-gray-50 hover:shadow-sm'
-      }`}
+      className={`border-2 rounded-xl p-5 cursor-pointer transition-all
+        ${selected
+          ? 'border-primary-600 bg-primary-50 shadow-md dark:border-blue-500 dark:bg-blue-900/30'
+          : 'border-gray-200 hover:border-primary-200 hover:bg-gray-50 hover:shadow-sm dark:border-slate-700 dark:hover:border-blue-400 dark:hover:bg-slate-700/60'}
+      `}
       onClick={() => onSelect(type)}
     >
       <div className={`w-14 h-14 rounded-full mb-4 mx-auto flex items-center justify-center ${

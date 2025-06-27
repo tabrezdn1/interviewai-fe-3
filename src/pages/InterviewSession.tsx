@@ -295,20 +295,20 @@ const InterviewSessionContent: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-white">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white mb-6"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center transition-colors duration-500 bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-black dark:via-black dark:to-black text-gray-900 dark:text-white">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary dark:border-blue-500 mb-6"></div>
         <h2 className="text-2xl font-semibold mb-2">Preparing Your Interview</h2>
-        <p className="text-gray-400">Setting up the AI interviewer...</p>
+        <p className="text-gray-400 dark:text-gray-300">Setting up the AI interviewer...</p>
       </div>
     );
   }
 
   if (!interviewData) {
     return (
-      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-white">
+      <div className="min-h-screen flex flex-col items-center justify-center transition-colors duration-500 bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-black dark:via-black dark:to-black text-gray-900 dark:text-white">
         <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
         <h2 className="text-2xl font-semibold mb-2">Interview Not Found</h2>
-        <p className="text-gray-400 mb-6">The interview session could not be loaded.</p>
+        <p className="text-gray-400 dark:text-gray-300 mb-6">The interview session could not be loaded.</p>
         <Button onClick={() => navigate('/dashboard')}>
           Return to Dashboard
         </Button>
@@ -319,11 +319,11 @@ const InterviewSessionContent: React.FC = () => {
   // Show video setup if not completed
   if (showVideoSetup && interviewData) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-24 pb-12">
+      <div className="min-h-screen transition-colors duration-500 bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-black dark:via-black dark:to-black pt-24 pb-12">
         <div className="container-custom mx-auto">
           <Breadcrumb />
           <BackButton className="mb-4" />
-          <h1 className="text-3xl font-bold mb-6">Interview Setup</h1>
+          <h1 className="text-3xl font-bold mb-6 dark:text-white transition-colors">Interview Setup</h1>
           <VideoInterviewSetup
             interviewType={interviewData.interview_types?.type || 'technical'}
             participantName="Candidate"
@@ -341,39 +341,39 @@ const InterviewSessionContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen transition-colors duration-500 bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-black dark:via-black dark:to-black text-gray-900 dark:text-white">
       {/* Top controls */}
-      <div className="fixed top-0 left-0 right-0 bg-gray-900 border-b border-gray-800 py-3 px-4 z-20">
+      <div className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-black/80 border-b border-gray-200 dark:border-gray-800 py-3 px-4 z-20 backdrop-blur-md transition-colors duration-500">
         <div className="container-custom mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Button
               onClick={() => navigate('/dashboard')}
               variant="ghost"
               size="sm"
-              className="flex items-center gap-2 text-white hover:bg-gray-800"
+              className="flex items-center gap-2 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <ChevronLeft className="h-4 w-4" />
               Back to Dashboard
             </Button>
           </div>
           <div>
-            <h1 className="font-medium truncate">
+            <h1 className="font-medium truncate dark:text-white">
               {interviewData.title} 
-              {interviewData.company && <span className="text-gray-400"> • {interviewData.company}</span>}
+              {interviewData.company && <span className="text-gray-400 dark:text-gray-300"> • {interviewData.company}</span>}
             </h1>
           </div>
           
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4 text-gray-400" />
-              <span className={`font-medium text-base ${timeRemaining < 300 ? 'text-red-500' : 'text-white'}`}>
-                {formatTime(timeRemaining)} <span className="text-gray-400 text-xs">/ {interviewData.duration}:00</span>
+              <Clock className="h-4 w-4 text-gray-400 dark:text-gray-300" />
+              <span className={`font-medium text-base ${timeRemaining < 300 ? 'text-red-500' : 'text-gray-900 dark:text-white'}`}> 
+                {formatTime(timeRemaining)} <span className="text-gray-400 dark:text-gray-300 text-xs">/ {(interviewData.duration)}:00</span>
               </span>
             </div>
             
             <button
               onClick={togglePause}
-              className="p-2 rounded-full hover:bg-gray-800 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label={isPaused ? "Resume interview" : "Pause interview"}
             >
               {isPaused ? (
@@ -385,7 +385,7 @@ const InterviewSessionContent: React.FC = () => {
 
             <button 
               onClick={() => setShowExitConfirm(true)}
-              className="p-2 rounded-full hover:bg-gray-800 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="Exit interview"
             >
               <X className="h-5 w-5" />
@@ -393,7 +393,7 @@ const InterviewSessionContent: React.FC = () => {
 
             <button
               onClick={() => setShowSettings(true)}
-              className="p-2 rounded-full hover:bg-gray-800 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="Settings"
             >
               <Settings className="h-5 w-5" />
@@ -412,7 +412,7 @@ const InterviewSessionContent: React.FC = () => {
               role={interviewData.role}
               company={interviewData.company || undefined}
               timeRemaining={timeRemaining}
-              totalDuration={interviewData.duration * 60}
+              totalDuration={(interviewData.duration ?? 20) * 60}
               conversationalContext={interviewData.llm_generated_context}
               customGreeting={interviewData.llm_generated_greeting}
               tavusPersonaId={interviewData.tavus_persona_id}
@@ -424,11 +424,11 @@ const InterviewSessionContent: React.FC = () => {
           )}
           
           {isPaused && (
-            <div className="absolute inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center">
+            <div className="absolute inset-0 bg-white/80 dark:bg-black/90 flex items-center justify-center transition-colors duration-500">
               <div className="text-center">
-                <PauseCircle className="h-16 w-16 text-white mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Interview Paused</h3>
-                <p className="text-gray-400 mb-6">Take a moment to collect your thoughts</p>
+                <PauseCircle className="h-16 w-16 text-gray-900 dark:text-white mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2 dark:text-white">Interview Paused</h3>
+                <p className="text-gray-400 dark:text-gray-300 mb-6">Take a moment to collect your thoughts</p>
                 <Button
                   onClick={togglePause}
                   variant="interview"
@@ -445,22 +445,22 @@ const InterviewSessionContent: React.FC = () => {
 
       {/* End Call Confirmation Dialog */}
       {showEndCallConfirm && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-white/80 dark:bg-black/90 flex items-center justify-center p-4 z-50 transition-colors duration-500">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2 }}
-            className="bg-gray-800 rounded-xl p-6 max-w-md w-full shadow-xl border border-gray-700"
+            className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full shadow-xl border border-gray-200 dark:border-gray-700 transition-colors duration-500"
           >
-            <h3 className="text-2xl font-semibold mb-4 text-white">End Interview?</h3>
-            <p className="text-gray-300 mb-8 text-lg">
+            <h3 className="text-2xl font-semibold mb-4 dark:text-white">End Interview?</h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-8 text-lg">
               Are you sure you want to end this interview? This will complete your session and generate feedback.
             </p>
             <div className="flex gap-6">
               <Button
                 onClick={() => setShowEndCallConfirm(false)}
                 variant="ghost"
-                className="flex-1 text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-600 py-6 text-lg"
+                className="flex-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-600 py-6 text-lg"
               >
                 Continue Interview
               </Button>
@@ -478,22 +478,22 @@ const InterviewSessionContent: React.FC = () => {
       
       {/* Exit confirmation modal */}
       {showExitConfirm && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-white/80 dark:bg-black/90 flex items-center justify-center p-4 z-50 transition-colors duration-500">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2 }}
-            className="bg-gray-800 rounded-xl p-6 max-w-md w-full shadow-xl border border-gray-700"
+            className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full shadow-xl border border-gray-200 dark:border-gray-700 transition-colors duration-500"
           >
-            <h3 className="text-2xl font-semibold mb-4 text-white">End Interview?</h3>
-            <p className="text-gray-300 mb-8 text-lg">
+            <h3 className="text-2xl font-semibold mb-4 dark:text-white">End Interview?</h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-8 text-lg">
               Are you sure you want to end this interview? Your progress will not be saved.
             </p>
             <div className="flex gap-6">
               <Button
                 onClick={() => setShowExitConfirm(false)}
                 variant="outline"
-                className="flex-1 text-white border-gray-600 hover:bg-gray-700 py-6 text-lg"
+                className="flex-1 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 py-6 text-lg"
               >
                 Continue Interview
               </Button>

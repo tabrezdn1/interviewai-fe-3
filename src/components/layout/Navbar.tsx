@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut, BarChart2, MessageSquare, Settings, CreditCard, ChevronDown } from 'lucide-react';
+import { Menu, X, LogOut, MessageSquare, Settings, CreditCard, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import { getConversationMinutes } from '../../services/ProfileService';
@@ -8,6 +8,7 @@ import { Button } from '../ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '../ui/dropdown-menu';
 import { Badge } from '../ui/badge';
+import { ThemeToggle } from '../ui/theme-toggle';
 import { cn } from '../../lib/utils.tsx';
 
 const Navbar: React.FC = () => {
@@ -65,8 +66,8 @@ const Navbar: React.FC = () => {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isTransparent 
-          ? "bg-transparent py-5" 
-          : "bg-background/80 backdrop-blur-md border-b py-3"
+          ? "bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-b border-white/30 dark:border-slate-700/50 py-5 shadow-sm"
+          : "bg-gradient-to-br from-white/80 via-blue-50/80 to-purple-100/80 dark:from-slate-900/90 dark:via-blue-900/80 dark:to-purple-900/80 backdrop-blur-md border-b border-white/20 dark:border-slate-700/50 py-3 shadow-lg"
       )}
     >
       <div className="container-custom mx-auto flex justify-between items-center">
@@ -77,17 +78,17 @@ const Navbar: React.FC = () => {
         >
           {/* Logo with glow effect on hover */}
           <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-full opacity-0 group-hover:opacity-70 blur-md transition-opacity"></div>
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full opacity-0 group-hover:opacity-70 blur-md transition-opacity"></div>
             <div className="relative">
               <MessageSquare className={cn(
                 "h-6 w-6 transition-colors", 
-                isTransparent ? "text-white" : "text-primary"
+                isTransparent ? "text-blue-700 dark:text-white" : "text-blue-600 dark:text-blue-400"
               )} />
             </div>
           </div>
           <span className={cn(
             "transition-colors", 
-            isTransparent ? "text-white" : "text-foreground"
+            isTransparent ? "text-blue-900 dark:text-white" : "text-slate-900 dark:text-white"
           )}>
             InterviewAI
           </span>
@@ -98,16 +99,16 @@ const Navbar: React.FC = () => {
           <div className={cn(
             "hidden md:flex items-center gap-1 rounded-full p-1 border transition-all duration-300",
             isTransparent 
-              ? "bg-white/20 backdrop-blur-md border-white/30" 
-              : "bg-gray-100 border-gray-200 shadow-sm"
+              ? "bg-white/40 dark:bg-slate-800/40 backdrop-blur-md border-white/30 dark:border-slate-700/50" 
+              : "bg-gradient-to-r from-blue-100/60 to-purple-100/60 dark:from-blue-900/40 dark:to-purple-900/40 border-white/20 dark:border-slate-700/50 shadow"
           )}>
             <button
               onClick={() => scrollToSection('features')}
               className={cn(
                 "px-4 py-2 rounded-full transition-all text-sm font-medium",
                 isTransparent 
-                  ? "text-white hover:text-white hover:bg-white/30 shadow-sm" 
-                  : "text-gray-700 hover:text-gray-900 hover:bg-white shadow-sm"
+                  ? "text-blue-900 dark:text-white hover:text-blue-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 shadow-sm" 
+                  : "text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 shadow-sm"
               )}
             >
               Features
@@ -117,8 +118,8 @@ const Navbar: React.FC = () => {
               className={cn(
                 "px-4 py-2 rounded-full transition-all text-sm font-medium",
                 isTransparent 
-                  ? "text-white hover:text-white hover:bg-white/30 shadow-sm" 
-                  : "text-gray-700 hover:text-gray-900 hover:bg-white shadow-sm"
+                  ? "text-blue-900 dark:text-white hover:text-blue-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 shadow-sm" 
+                  : "text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 shadow-sm"
               )}
             >
               Pricing
@@ -128,8 +129,8 @@ const Navbar: React.FC = () => {
               className={cn(
                 "px-4 py-2 rounded-full transition-all text-sm font-medium",
                 isTransparent 
-                  ? "text-white hover:text-white hover:bg-white/30 shadow-sm" 
-                  : "text-gray-700 hover:text-gray-900 hover:bg-white shadow-sm"
+                  ? "text-blue-900 dark:text-white hover:text-blue-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 shadow-sm" 
+                  : "text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 shadow-sm"
               )}
             >
               About
@@ -139,12 +140,21 @@ const Navbar: React.FC = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
+          {/* Theme Toggle */}
+          <ThemeToggle 
+            size="sm" 
+            className={cn(
+              "transition-opacity",
+              isTransparent ? "opacity-80 hover:opacity-100" : ""
+            )}
+          />
+          
           <div className="flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost\" className="flex items-center gap-2 hover:bg-transparent">
+                    <Button variant="ghost" className="flex items-center gap-2 hover:bg-transparent">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={user.avatar} alt={user.name} />
                         <AvatarFallback className="bg-primary-100 text-primary-700">
@@ -204,12 +214,12 @@ const Navbar: React.FC = () => {
               </div>
             ) : (
               <>
-                <Button asChild variant="ghost" size="sm" className={isTransparent ? "text-white hover:bg-white/10" : ""}>
+                <Button asChild variant="ghost" size="sm" className={cn(isTransparent ? "hover:bg-white/10" : "", "text-blue-700 dark:text-white hover:bg-blue-700 dark:hover:bg-blue-600")}>
                   <Link to="/login">
                     Sign In
                   </Link>
                 </Button>
-                <Button asChild>
+                <Button asChild className="hover:bg-blue-700 dark:hover:bg-blue-600">
                   <Link to="/login?signup=true">
                     Sign Up
                   </Link>
@@ -220,7 +230,16 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center gap-2">
+          {/* Theme Toggle for Mobile */}
+          <ThemeToggle 
+            size="sm" 
+            className={cn(
+              "transition-opacity",
+              isTransparent ? "opacity-80 hover:opacity-100" : ""
+            )}
+          />
+          
           <button 
             className={cn(
               "focus:outline-none",

@@ -249,8 +249,13 @@ const FeedbackAnalysis: React.FC = () => {
   // Show loading state
   if (loading && !feedbackData) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-24 pb-12">
-        <div className="container-custom mx-auto">
+      <div className="min-h-screen relative overflow-hidden pt-24 pb-12">
+        {/* Background gradient for light theme, pure black for dark */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />
+          <div className="absolute inset-0 hidden dark:block bg-black" />
+        </div>
+        <div className="container-custom mx-auto relative z-10">
           <Breadcrumb />
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -287,8 +292,13 @@ const FeedbackAnalysis: React.FC = () => {
 
   if (!feedbackData) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-24 pb-12">
-        <div className="container-custom mx-auto">
+      <div className="min-h-screen relative overflow-hidden pt-24 pb-12">
+        {/* Background gradient for light theme, pure black for dark */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />
+          <div className="absolute inset-0 hidden dark:block bg-black" />
+        </div>
+        <div className="container-custom mx-auto relative z-10">
           <Breadcrumb />
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -318,8 +328,13 @@ const FeedbackAnalysis: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
-      <div className="container-custom mx-auto">
+    <div className="min-h-screen relative overflow-hidden pt-24 pb-12">
+      {/* Background gradient for light theme, pure black for dark */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />
+        <div className="absolute inset-0 hidden dark:block bg-black" />
+      </div>
+      <div className="container-custom mx-auto relative z-10">
         <Breadcrumb />
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -348,34 +363,34 @@ const FeedbackAnalysis: React.FC = () => {
               transition={{ duration: 0.3, delay: 0.1 }}
               className="mb-8"
             >
-              <Card className="overflow-hidden">
-                <div className="border-b border-gray-200">
+              <Card className="overflow-hidden bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
+                <div className="border-b border-gray-200 dark:border-slate-700">
                   <div className="flex">
                     <button
-                      className={`px-6 py-4 font-medium text-sm ${
+                      className={`px-6 py-4 font-medium text-sm transition-colors ${
                         activeTab === 'summary'
-                          ? 'text-primary-600 border-b-2 border-primary-600'
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
+                          : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
                       }`}
                       onClick={() => setActiveTab('summary')}
                     >
                       Summary
                     </button>
                     <button
-                      className={`px-6 py-4 font-medium text-sm ${
+                      className={`px-6 py-4 font-medium text-sm transition-colors ${
                         activeTab === 'skills'
-                          ? 'text-primary-600 border-b-2 border-primary-600'
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
+                          : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
                       }`}
                       onClick={() => setActiveTab('skills')}
                     >
                       Skills Assessment
                     </button>
                     <button
-                      className={`px-6 py-4 font-medium text-sm ${
+                      className={`px-6 py-4 font-medium text-sm transition-colors ${
                         activeTab === 'transcript'
-                          ? 'text-primary-600 border-b-2 border-primary-600'
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
+                          : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
                       }`}
                       onClick={() => setActiveTab('transcript')}
                     >
@@ -393,39 +408,39 @@ const FeedbackAnalysis: React.FC = () => {
                       transition={{ duration: 0.2 }}
                     >
                      <div className="mb-6">
-                       <h2 className="text-xl font-semibold mb-3">Overall Performance</h2>
-                       <p className="text-gray-700 mb-6">{feedbackData.summary}</p>
+                       <h2 className="text-xl font-semibold mb-3 dark:text-slate-100">Overall Performance</h2>
+                       <p className="text-gray-700 dark:text-slate-300 mb-6">{feedbackData.summary}</p>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
-                            <h3 className="font-medium mb-3 text-green-700 flex items-center gap-2">
+                            <h3 className="font-medium mb-3 text-green-700 dark:text-green-300 flex items-center gap-2">
                               <ThumbsUp className="h-5 w-5" />
                               Strengths
                             </h3>
                             <ul className="space-y-2">
                               {feedbackData.strengths.map((strength, index) => (
                                 <li key={index} className="flex items-start gap-2">
-                                  <div className="w-5 h-5 rounded-full bg-green-100 flex-shrink-0 flex items-center justify-center mt-0.5">
-                                    <span className="text-green-700 text-xs">✓</span>
+                                  <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                    <span className="text-green-700 dark:text-green-300 text-xs">✓</span>
                                   </div>
-                                  <span className="text-gray-700">{strength}</span>
+                                  <span className="text-gray-700 dark:text-slate-200">{strength}</span>
                                 </li>
                               ))}
                             </ul>
                           </div>
                           
                           <div>
-                            <h3 className="font-medium mb-3 text-amber-700 flex items-center gap-2">
+                            <h3 className="font-medium mb-3 text-amber-700 dark:text-amber-300 flex items-center gap-2">
                               <ThumbsDown className="h-5 w-5" />
                               Areas for Improvement
                             </h3>
                             <ul className="space-y-2">
                               {feedbackData.improvements.map((improvement, index) => (
                                 <li key={index} className="flex items-start gap-2">
-                                  <div className="w-5 h-5 rounded-full bg-amber-100 flex-shrink-0 flex items-center justify-center mt-0.5">
-                                    <span className="text-amber-700 text-xs">!</span>
+                                  <div className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                    <span className="text-amber-700 dark:text-amber-300 text-xs">!</span>
                                   </div>
-                                  <span className="text-gray-700">{improvement}</span>
+                                  <span className="text-gray-700 dark:text-slate-200">{improvement}</span>
                                 </li>
                               ))}
                             </ul>
@@ -434,7 +449,7 @@ const FeedbackAnalysis: React.FC = () => {
                       </div>
                       
                       <div className="mt-8">
-                        <h3 className="font-medium mb-4">Key Metrics</h3>
+                        <h3 className="font-medium mb-4 dark:text-slate-100">Key Metrics</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           <MetricCard 
                             label="Overall Score" 
@@ -458,12 +473,12 @@ const FeedbackAnalysis: React.FC = () => {
                           />
                         </div>
                        
-                       <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                         <h4 className="font-medium mb-3">Interview Configuration</h4>
+                       <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-800/80 rounded-lg">
+                         <h4 className="font-medium mb-3 dark:text-slate-100">Interview Configuration</h4>
                          <div className="grid grid-cols-2 gap-4">
                            <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                               <Briefcase className="h-4 w-4 text-purple-600" />
+                             <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                               <Briefcase className="h-4 w-4 text-purple-600 dark:text-purple-300" />
                              </div>
                              <div>
                                <p className="text-xs text-gray-500">Position</p>
@@ -473,8 +488,8 @@ const FeedbackAnalysis: React.FC = () => {
                              </div>
                            </div>
                            <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                               <Building className="h-4 w-4 text-indigo-600" />
+                             <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                               <Building className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
                              </div>
                              <div>
                                <p className="text-xs text-gray-500">Company</p>
@@ -484,8 +499,8 @@ const FeedbackAnalysis: React.FC = () => {
                              </div>
                            </div>
                            <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                               <Award className="h-4 w-4 text-blue-600" />
+                             <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                               <Award className="h-4 w-4 text-blue-600 dark:text-blue-300" />
                              </div>
                              <div>
                                <p className="text-xs text-gray-500">Difficulty Level</p>
@@ -495,8 +510,8 @@ const FeedbackAnalysis: React.FC = () => {
                              </div>
                            </div>
                            <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                               <User className="h-4 w-4 text-green-600" />
+                             <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                               <User className="h-4 w-4 text-green-600 dark:text-green-300" />
                              </div>
                              <div>
                                <p className="text-xs text-gray-500">Experience Level</p>
@@ -554,9 +569,9 @@ const FeedbackAnalysis: React.FC = () => {
                         </div>
                       </div>
                       
-                      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                      <div className="mt-8 p-4 bg-gray-50 dark:bg-slate-800/80 rounded-lg">
                         <h3 className="font-medium mb-2">AI-Powered Recommendation</h3>
-                        <p className="text-gray-700 text-sm">
+                        <p className="text-gray-700 dark:text-slate-300 text-sm">
                           Based on your performance, we recommend focusing on improving your system design skills and practicing more complex technical scenarios. Consider reviewing our advanced system design course and practicing with more challenging interview questions.
                         </p>
                       </div>
@@ -573,7 +588,7 @@ const FeedbackAnalysis: React.FC = () => {
                       <div className="mb-6">
                         <h2 className="text-xl font-semibold mb-3">Interview Transcript</h2>
                         {feedbackData.transcript ? (
-                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 max-h-96 overflow-y-auto">
+                          <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700 mb-6 max-h-96 overflow-y-auto">
                             <pre className="whitespace-pre-wrap font-mono text-sm">
                               {feedbackData.transcript && feedbackData.transcript.includes('user: ') 
                                 ? feedbackData.transcript.substring(feedbackData.transcript.indexOf('user: ')) 
@@ -581,21 +596,21 @@ const FeedbackAnalysis: React.FC = () => {
                             </pre>
                           </div>
                         ) : (
-                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-                            <p className="text-gray-500 italic">No transcript available for this interview.</p>
+                          <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700 mb-6">
+                            <p className="text-gray-500 dark:text-slate-400 italic">No transcript available for this interview.</p>
                           </div>
                         )}
                         
                         <h2 className="text-xl font-semibold mb-3 mt-8">AI Analysis</h2>
                         {feedbackData.tavus_analysis ? (
-                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
+                          <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700 max-h-96 overflow-y-auto">
                             <pre className="text-sm text-gray-800">
                               {JSON.stringify(feedbackData.tavus_analysis, null, 2)}
                             </pre>
                           </div>
                         ) : (
-                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <p className="text-gray-500 italic">No detailed analysis available for this interview.</p>
+                          <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
+                            <p className="text-gray-500 dark:text-slate-400 italic">No detailed analysis available for this interview.</p>
                           </div>
                         )}
                       </div>
@@ -614,40 +629,40 @@ const FeedbackAnalysis: React.FC = () => {
               className="sticky top-24"
             >
               {feedbackData.processing_status === 'processing' ? (
-                <Card className="mb-6">
+                <Card className="mb-6 bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="font-semibold text-lg">Generating Feedback</h3>
-                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                        <Loader2 className="h-5 w-5 text-blue-600 dark:text-blue-300 animate-spin" />
                       </div>
                     </div>
                     
                     <div className="flex flex-col items-center justify-center mb-4">
                       <div className="relative w-32 h-32 flex items-center justify-center">
-                        <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
-                        <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+                        <div className="absolute inset-0 border-4 border-gray-200 dark:border-slate-700 rounded-full"></div>
+                        <div className="absolute inset-0 border-4 border-blue-500 dark:border-blue-400 rounded-full border-t-transparent animate-spin"></div>
                         <div className="text-center">
-                          <p className="text-lg font-medium text-gray-600">Generating</p>
-                          <p className="text-sm text-gray-500">Please wait</p>
+                          <p className="text-lg font-medium text-gray-600 dark:text-slate-200">Generating</p>
+                          <p className="text-sm text-gray-500 dark:text-slate-400">Please wait</p>
                         </div>
                       </div>
                     </div>
                     
                     <div className="text-center mb-6">
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-slate-400">
                         Your feedback is being generated. This may take a few minutes.
                       </p>
                     </div>
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="mb-6">
+                <Card className="mb-6 bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="font-semibold text-lg">Overall Score</h3>
-                      <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                        <BarChart2 className="h-5 w-5 text-primary-600" />
+                      <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-blue-900 flex items-center justify-center">
+                        <BarChart2 className="h-5 w-5 text-primary-600 dark:text-blue-400" />
                       </div>
                     </div>
                     
@@ -675,13 +690,13 @@ const FeedbackAnalysis: React.FC = () => {
                           />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-3xl font-bold">{feedbackData.overallScore}</span>
+                          <span className="text-3xl font-bold dark:text-slate-100">{feedbackData.overallScore}</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="text-center mb-6">
-                      <p className="text-lg font-medium">
+                      <p className="text-lg font-medium dark:text-slate-200">
                         {getScoreRating(feedbackData.overallScore)}
                       </p>
                     </div>
@@ -689,9 +704,9 @@ const FeedbackAnalysis: React.FC = () => {
                 </Card>
               )}
               
-              <Card>
+              <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
                 <CardHeader>
-                  <CardTitle className="text-lg font-semibold">Next Steps</CardTitle>
+                  <CardTitle className="text-lg font-semibold dark:text-slate-100">Next Steps</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 pt-0">
                   <ul className="space-y-3">
@@ -699,16 +714,16 @@ const FeedbackAnalysis: React.FC = () => {
                       <li key={index}>
                         <Link 
                           to={step.link} 
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors dark:bg-slate-800/80 dark:hover:bg-slate-700"
                         >
-                          <span className="font-medium">{step.title}</span>
-                          <ArrowUpRight className="h-4 w-4 text-gray-600" />
+                          <span className="font-medium dark:text-slate-100">{step.title}</span>
+                          <ArrowUpRight className="h-4 w-4 text-gray-600 dark:text-slate-300" />
                         </Link>
                       </li>
                     ))}
                   </ul>
                   
-                  <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
                     <Button 
                       asChild
                      variant="interview"
@@ -737,12 +752,12 @@ interface MetricCardProps {
 
 const MetricCard: React.FC<MetricCardProps> = ({ label, value, icon }) => {
   return (
-    <div className="bg-gray-50 rounded-lg p-4">
+    <div className="bg-gray-50 dark:bg-slate-800/80 rounded-lg p-4">
       <div className="flex items-center gap-2 mb-2">
         {icon}
-        <span className="text-sm text-gray-600">{label}</span>
+        <span className="text-sm text-gray-600 dark:text-slate-300">{label}</span>
       </div>
-      <p className="text-xl font-semibold">{value}</p>
+      <p className="text-xl font-semibold dark:text-slate-100">{value}</p>
     </div>
   );
 };
@@ -757,16 +772,16 @@ const SkillBar: React.FC<SkillBarProps> = ({ label, score, feedback }) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-2">
-        <span className="font-medium">{label}</span>
+        <span className="font-medium dark:text-slate-100">{label}</span>
         <span className={`text-sm font-medium ${getScoreTextColor(score)}`}>{score}%</span>
       </div>
-      <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+      <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden mb-2">
         <div 
           className={`h-full rounded-l-full ${getScoreBackgroundColor(score)}`}
           style={{ width: `${score}%` }}
         ></div>
       </div>
-      <p className="text-sm text-gray-600">{feedback}</p>
+      <p className="text-sm text-gray-600 dark:text-slate-300">{feedback}</p>
     </div>
   );
 };

@@ -160,7 +160,7 @@ const Settings: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-black pt-24 pb-12">
       <div className="container-custom mx-auto">
         <Breadcrumb />
         <motion.div
@@ -179,7 +179,7 @@ const Settings: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <Card>
+            <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
               <CardContent className="p-6">
                 <div className="space-y-2">
                   {tabs.map((tab) => {
@@ -190,8 +190,8 @@ const Settings: React.FC = () => {
                         onClick={() => setActiveTab(tab.id)}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
                           activeTab === tab.id
-                            ? 'bg-primary-100 text-primary-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-100'
+                            ? 'bg-primary-100 text-primary-700 font-medium dark:bg-blue-900/40 dark:text-blue-300'
+                            : 'text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800/60'
                         }`}
                       >
                         <Icon className="h-4 w-4" />
@@ -214,10 +214,10 @@ const Settings: React.FC = () => {
             >
               {/* Profile Tab */}
               {activeTab === 'profile' && (
-                <Card>
+                <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
                   <CardHeader>
-                    <CardTitle>Profile Information</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="dark:text-slate-100">Profile Information</CardTitle>
+                    <CardDescription className="dark:text-slate-300">
                       Update your personal information and profile picture
                     </CardDescription>
                   </CardHeader>
@@ -237,30 +237,30 @@ const Settings: React.FC = () => {
                     )}
 
                     <div className="flex items-center gap-6">
-                      <div className="h-20 w-20 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-3xl font-medium">
+                      <div className="h-20 w-20 rounded-full bg-primary-100 dark:bg-blue-900 flex items-center justify-center text-primary-700 dark:text-blue-300 text-3xl font-medium">
                         {user?.name?.charAt(0).toUpperCase() || 'U'}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Full Name</label>
+                        <label className="block text-sm font-medium mb-2 dark:text-slate-200">Full Name</label>
                         <input
                           type="text"
                           name="profile.name"
                           value={formData.profile.name}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Email Address</label>
+                        <label className="block text-sm font-medium mb-2 dark:text-slate-200">Email Address</label>
                         <input
                           type="email"
                           name="profile.email"
                           value={formData.profile.email}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                       </div>
                     </div>
@@ -280,26 +280,26 @@ const Settings: React.FC = () => {
 
               {/* Security Tab */}
               {activeTab === 'security' && (
-                <Card>
+                <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
                   <CardHeader>
-                    <CardTitle>Security Settings</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="dark:text-slate-100">Security Settings</CardTitle>
+                    <CardDescription className="dark:text-slate-300">
                       Manage your password and security preferences
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div>
-                      <h3 className="text-lg font-medium mb-4">Change Password</h3>
+                      <h3 className="text-lg font-medium mb-4 dark:text-slate-100">Change Password</h3>
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium mb-2">Current Password</label>
+                          <label className="block text-sm font-medium mb-2 dark:text-slate-200">Current Password</label>
                           <div className="relative">
                             <input
                               type={showPassword ? "text" : "password"}
                               name="security.currentPassword"
                               value={formData.security.currentPassword}
                               onChange={handleInputChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10"
                             />
                             <button
                               type="button"
@@ -311,23 +311,23 @@ const Settings: React.FC = () => {
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-2">New Password</label>
+                          <label className="block text-sm font-medium mb-2 dark:text-slate-200">New Password</label>
                           <input
                             type={showPassword ? "text" : "password"}
                             name="security.newPassword"
                             value={formData.security.newPassword}
                             onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-2">Confirm New Password</label>
+                          <label className="block text-sm font-medium mb-2 dark:text-slate-200">Confirm New Password</label>
                           <input
                             type={showPassword ? "text" : "password"}
                             name="security.confirmPassword"
                             value={formData.security.confirmPassword}
                             onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                           />
                         </div>
                       </div>

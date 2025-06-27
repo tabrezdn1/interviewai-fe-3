@@ -450,7 +450,7 @@ const Dashboard: React.FC = () => {
   if (isLoading) {
     console.log('📊 Dashboard: Rendering loading state', { authLoading, dataLoading });
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
       </div>
     );
@@ -465,8 +465,42 @@ const Dashboard: React.FC = () => {
   });
   
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
-      <div className="container-custom mx-auto">
+    <div className="min-h-screen pt-24 pb-12 relative overflow-hidden">
+      {/* Full-screen fixed gradient background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        {/* Light theme: soft blue/purple gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />
+        {/* Dark theme: pure black background only */}
+        <div className="absolute inset-0 hidden dark:block bg-black" />
+      </div>
+      {/* Subtle animated bubbles */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20 dark:from-blue-700/10 dark:to-purple-700/10"
+            style={{
+              width: Math.random() * 100 + 40,
+              height: Math.random() * 100 + 40,
+              top: `${Math.random() * 80 + 10}%`,
+              left: `${Math.random() * 80 + 10}%`,
+            }}
+            animate={{
+              y: [0, Math.random() * 30 - 15],
+              x: [0, Math.random() * 30 - 15],
+              scale: [1, 1.08, 1],
+              opacity: [0.10, 0.18, 0.10],
+            }}
+            transition={{
+              duration: 16 + Math.random() * 8,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </div>
+      <div className="container-custom mx-auto relative z-10">
         {/* Add a hidden debug panel that can be shown with a keyboard shortcut */}
         <div id="debug-panel" className="hidden fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 z-50 max-h-64 overflow-auto text-xs">
           <h3 className="font-bold mb-2">Debug Info:</h3>
@@ -500,7 +534,7 @@ const Dashboard: React.FC = () => {
                   size="sm" 
                   onClick={() => fetchInterviewsData(true)}
                   disabled={isRefreshing}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 hover:bg-blue-700 dark:hover:bg-blue-600"
                 >
                   <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                   {isRefreshing ? 'Refreshing...' : 'Refresh'}
@@ -508,7 +542,7 @@ const Dashboard: React.FC = () => {
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">Auto-refresh</Button>
+                    <Button variant="ghost" size="sm" className="hover:bg-blue-700 dark:hover:bg-blue-600">Auto-refresh</Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => setIsPolling(!isPolling)}>
@@ -529,7 +563,7 @@ const Dashboard: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            <Card>
+            <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
                 <Clock className="h-4 w-4 text-primary-600" />
@@ -546,7 +580,7 @@ const Dashboard: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
           >
-            <Card>
+            <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-sm font-medium">Completed</CardTitle>
                 <CheckCircle className="h-4 w-4 text-success-600" />
@@ -563,7 +597,7 @@ const Dashboard: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.3 }}
           >
-            <Card>
+            <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-sm font-medium">Conversation Minutes</CardTitle>
                 <Clock className="h-4 w-4 text-accent-600" />
@@ -623,7 +657,7 @@ const Dashboard: React.FC = () => {
                 <Button 
                   variant="white" 
                   size="lg" 
-                  className="mt-4 md:mt-0 font-medium bg-gradient-to-r from-blue-500 to-indigo-600  border-0 shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300"
+                  className="mt-4 md:mt-0 font-medium bg-gradient-to-r from-blue-500 to-indigo-600  border-0 shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 hover:bg-blue-700 dark:hover:bg-blue-600"
                 >
                   <span className="text-white">Schedule</span>
                   <PlusCircle className="ml-2 h-4 w-4 text-white group-hover:rotate-90 transition-transform" />
@@ -638,14 +672,14 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.5 }}
         >
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
             <div className="border-b border-gray-200">
               <div className="flex">
                 <button
                   className={`px-6 py-4 font-medium text-sm ${
                     activeTab === 'upcoming'
-                      ? 'text-primary-600 border-b-2 border-primary-600'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 dark:border-blue-400'
+                      : 'text-gray-600 hover:text-blue-700 dark:text-gray-400 dark:hover:text-blue-400'
                   }`}
                   onClick={() => setActiveTab('upcoming')}
                 >
@@ -654,8 +688,8 @@ const Dashboard: React.FC = () => {
                 <button
                   className={`px-6 py-4 font-medium text-sm ${
                     activeTab === 'completed'
-                      ? 'text-primary-600 border-b-2 border-primary-600'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 dark:border-blue-400'
+                      : 'text-gray-600 hover:text-blue-700 dark:text-gray-400 dark:hover:text-blue-400'
                   }`}
                   onClick={() => setActiveTab('completed')}
                 >
@@ -686,7 +720,7 @@ const Dashboard: React.FC = () => {
                         <Calendar className="h-8 w-8 text-gray-400" />
                       </div>
                       <p className="text-gray-500 mb-4">No upcoming interviews scheduled</p>
-                      <Button asChild>
+                      <Button asChild className="hover:bg-blue-700 dark:hover:bg-blue-600">
                         <Link to="/setup" className="gap-2 inline-flex items-center">
                           <PlusCircle className="h-4 w-4" /> Schedule
                         </Link>
@@ -717,7 +751,7 @@ const Dashboard: React.FC = () => {
                         <CheckCircle className="h-8 w-8 text-gray-400" />
                       </div>
                       <p className="text-gray-500 mb-4">No completed interviews yet</p>
-                      <Button asChild>
+                      <Button asChild className="hover:bg-blue-700 dark:hover:bg-blue-600">
                         <Link to="/setup" className="gap-2 inline-flex items-center">
                           <PlusCircle className="h-4 w-4" /> Schedule
                         </Link>
@@ -731,7 +765,7 @@ const Dashboard: React.FC = () => {
           
           {/* Recent Activities and Tips */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <Card className="md:col-span-2">
+            <Card className="md:col-span-2 border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle>Recent Activities</CardTitle>
                 <CardDescription>Your recent interview activity</CardDescription>
@@ -740,7 +774,7 @@ const Dashboard: React.FC = () => {
                 <div className="space-y-4">
                   {recentActivities.length > 0 ? (
                     recentActivities.map((activity) => (
-                      <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg bg-blue-100 dark:bg-slate-800/80 hover:bg-blue-200 dark:hover:bg-slate-700 transition-colors">
                         <div className={`w-8 h-8 rounded-full ${activity.iconBgColor} flex items-center justify-center`}>
                           <div className={activity.iconColor}>
                             {activity.icon}
@@ -770,7 +804,7 @@ const Dashboard: React.FC = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle>Interview Tips</CardTitle>
                 <CardDescription>Enhance your performance</CardDescription>
@@ -778,15 +812,18 @@ const Dashboard: React.FC = () => {
               <CardContent>
                 <div className="space-y-3">
                   {interviewTips.slice(0, 3).map((tip, index) => (
-                    <div key={index} className="p-3 rounded-lg border" 
-                      style={{ 
-                        backgroundColor: index === 0 ? 'rgb(239 246 255)' : index === 1 ? 'rgb(243 232 255)' : 'rgb(240 253 244)',
-                        borderColor: index === 0 ? 'rgb(219 234 254)' : index === 1 ? 'rgb(233 213 255)' : 'rgb(220 252 231)'
-                      }}>
-                      <p className="text-sm" 
-                        style={{ 
-                          color: index === 0 ? 'rgb(30 64 175)' : index === 1 ? 'rgb(107 33 168)' : 'rgb(22 101 52)'
-                        }}>
+                    <div key={index} className={
+                      `p-3 rounded-lg border 
+                      ${index === 0 ? 'bg-blue-100 border-blue-200 dark:bg-blue-900/80 dark:border-blue-700/60' : ''}
+                      ${index === 1 ? 'bg-purple-100 border-purple-200 dark:bg-purple-900/80 dark:border-purple-700/60' : ''}
+                      ${index === 2 ? 'bg-green-100 border-green-200 dark:bg-green-900/80 dark:border-green-700/60' : ''}`
+                    }>
+                      <p className={
+                        `text-sm 
+                        ${index === 0 ? 'text-blue-800 dark:text-blue-200' : ''}
+                        ${index === 1 ? 'text-purple-800 dark:text-purple-200' : ''}
+                        ${index === 2 ? 'text-green-800 dark:text-green-200' : ''}`
+                      }>
                         <span className="font-medium block">{tip.title}</span>
                         {tip.description}
                       </p>

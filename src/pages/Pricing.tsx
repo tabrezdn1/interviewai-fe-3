@@ -103,7 +103,7 @@ const Pricing: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-black pt-24 pb-12">
       <div className="container-custom mx-auto">
         <Breadcrumb />
         {/* Header */}
@@ -155,7 +155,7 @@ const Pricing: React.FC = () => {
                     : "text-gray-600 hover:text-gray-800"
                 )}
               >
-                Annual <span className="text-green-600 text-xs ml-1">20%</span>
+                Annual <span className="text-green-700 text-xs ml-1">20%</span>
               </button>
               
               {/* Sliding background */}
@@ -179,7 +179,7 @@ const Pricing: React.FC = () => {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className={`relative ${plan.popular ? 'scale-105' : ''}`}
             >
-              <Card className={`h-full ${plan.popular ? 'border-primary-500 shadow-xl' : 'border-gray-200'}`}>
+              <Card className={`h-full ${plan.popular ? 'border-primary-500 shadow-xl' : 'border-gray-200 dark:border-slate-700'} bg-white dark:bg-slate-900/90`}>
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-primary text-white px-4 py-1">
@@ -189,32 +189,32 @@ const Pricing: React.FC = () => {
                 )}
                 
                 <CardHeader className="text-center pb-4">
-                  <div className={`w-12 h-12 mx-auto mb-4 rounded-lg bg-${plan.color}-100 flex items-center justify-center`}>
-                    <div className={`text-${plan.color}-600`}>
+                  <div className={`w-12 h-12 mx-auto mb-4 rounded-lg bg-${plan.color}-100 dark:bg-${plan.color}-900 flex items-center justify-center`}>
+                    <div className={`text-${plan.color}-600 dark:text-${plan.color}-300`}>
                       {getPlanIconComponent(plan.icon)}
                     </div>
                   </div>
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
+                  <CardTitle className="text-xl dark:text-slate-100">{plan.name}</CardTitle>
+                  <CardDescription className="dark:text-slate-300">{plan.description}</CardDescription>
                   
                   <div className="mt-4">
                     <div className="flex items-baseline justify-center">
-                      <span className="text-4xl font-bold">${getPrice(plan.id)}</span>
-                      <span className="text-gray-500 ml-1">
+                      <span className="text-4xl font-bold dark:text-slate-100">${getPrice(plan.id)}</span>
+                      <span className="text-gray-500 dark:text-slate-300 ml-1">
                         /{isAnnual ? 'year' : 'month'}
                       </span>
                     </div>
                     <div className="mt-2 text-center">
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 dark:text-slate-300">
                         {getMinutes(plan.id)} conversation minutes
                       </span>
                     </div>
                     {isAnnual && getSavings(plan.id) > 0 && (
                       <div className="mt-2">
-                        <span className="text-sm text-gray-500 line-through">
+                        <span className="text-sm text-gray-500 dark:text-slate-400 line-through">
                           ${(PRICING_PLANS[plan.id as keyof typeof PRICING_PLANS].yearly.originalPrice || 0) / 100}/year
                         </span>
-                        <span className="text-sm text-green-600 font-medium ml-2">
+                        <span className="text-sm text-green-600 dark:text-green-300 font-medium ml-2">
                           Save ${getSavings(plan.id)}
                         </span>
                       </div>
@@ -226,8 +226,8 @@ const Pricing: React.FC = () => {
                   <ul className="space-y-3 mb-6">
                     {stripeService.getPlanFeatures(plan.id, isAnnual ? 'yearly' : 'monthly').map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
+                        <Check className="h-5 w-5 text-green-600 dark:text-green-300 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm dark:text-slate-200">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -269,10 +269,10 @@ const Pricing: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="mb-16"
         >
-          <Card>
+          <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Feature Comparison</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-2xl dark:text-slate-100">Feature Comparison</CardTitle>
+              <CardDescription className="dark:text-slate-300">
                 See what's included in each plan
               </CardDescription>
             </CardHeader>
@@ -280,37 +280,37 @@ const Pricing: React.FC = () => {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-3 px-4">Features</th>
-                      <th className="text-center py-3 px-4">Intro</th>
-                      <th className="text-center py-3 px-4">Professional</th>
-                      <th className="text-center py-3 px-4">Executive</th>
+                    <tr className="border-b dark:border-slate-700">
+                      <th className="text-left py-3 px-4 dark:text-slate-200">Features</th>
+                      <th className="text-center py-3 px-4 dark:text-slate-200">Intro</th>
+                      <th className="text-center py-3 px-4 dark:text-slate-200">Professional</th>
+                      <th className="text-center py-3 px-4 dark:text-slate-200">Executive</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b">
-                      <td className="py-3 px-4">Conversation Minutes</td>
-                      <td className="text-center py-3 px-4">60/month</td>
-                      <td className="text-center py-3 px-4">330/month</td>
-                      <td className="text-center py-3 px-4">900/month</td>
+                    <tr className="border-b dark:border-slate-700">
+                      <td className="py-3 px-4 dark:text-slate-300">Conversation Minutes</td>
+                      <td className="text-center py-3 px-4 dark:text-slate-300">60/month</td>
+                      <td className="text-center py-3 px-4 dark:text-slate-300">330/month</td>
+                      <td className="text-center py-3 px-4 dark:text-slate-300">900/month</td>
                     </tr>
-                    <tr className="border-b">
-                      <td className="py-3 px-4">Video Analysis</td>
-                      <td className="text-center py-3 px-4">-</td>
-                      <td className="text-center py-3 px-4"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
-                      <td className="text-center py-3 px-4"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
+                    <tr className="border-b dark:border-slate-700">
+                      <td className="py-3 px-4 dark:text-slate-300">Video Analysis</td>
+                      <td className="text-center py-3 px-4 dark:text-slate-300">-</td>
+                      <td className="text-center py-3 px-4"><Check className="h-4 w-4 text-green-600 dark:text-green-300 mx-auto" /></td>
+                      <td className="text-center py-3 px-4"><Check className="h-4 w-4 text-green-600 dark:text-green-300 mx-auto" /></td>
                     </tr>
-                    <tr className="border-b">
-                      <td className="py-3 px-4">1-on-1 Coaching</td>
-                      <td className="text-center py-3 px-4">-</td>
-                      <td className="text-center py-3 px-4">-</td>
-                      <td className="text-center py-3 px-4"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
+                    <tr className="border-b dark:border-slate-700">
+                      <td className="py-3 px-4 dark:text-slate-300">1-on-1 Coaching</td>
+                      <td className="text-center py-3 px-4 dark:text-slate-300">-</td>
+                      <td className="text-center py-3 px-4 dark:text-slate-300">-</td>
+                      <td className="text-center py-3 px-4"><Check className="h-4 w-4 text-green-600 dark:text-green-300 mx-auto" /></td>
                     </tr>
-                    <tr className="border-b">
-                      <td className="py-3 px-4">Priority Support</td>
-                      <td className="text-center py-3 px-4">-</td>
-                      <td className="text-center py-3 px-4"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
-                      <td className="text-center py-3 px-4"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
+                    <tr className="border-b dark:border-slate-700">
+                      <td className="py-3 px-4 dark:text-slate-300">Priority Support</td>
+                      <td className="text-center py-3 px-4 dark:text-slate-300">-</td>
+                      <td className="text-center py-3 px-4"><Check className="h-4 w-4 text-green-600 dark:text-green-300 mx-auto" /></td>
+                      <td className="text-center py-3 px-4"><Check className="h-4 w-4 text-green-600 dark:text-green-300 mx-auto" /></td>
                     </tr>
                   </tbody>
                 </table>
@@ -335,10 +335,10 @@ const Pricing: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {faqs.map((faq, index) => (
-                <Card key={index}>
+                <Card key={index} className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
                   <CardContent className="p-6">
-                    <h3 className="font-semibold mb-2">{faq.question}</h3>
-                    <p className="text-gray-600 text-sm">{faq.answer}</p>
+                    <h3 className="font-semibold mb-2 dark:text-slate-100">{faq.question}</h3>
+                    <p className="text-gray-600 dark:text-slate-300 text-sm">{faq.answer}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -346,60 +346,7 @@ const Pricing: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* CTA Section */}
-        <div className="text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-          >
-            <Card className="bg-gradient-to-r from-primary to-accent text-white">
-              <CardContent className="p-6 sm:p-12">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to Ace Your Next Interview?</h2>
-                <p className="text-base sm:text-lg mb-8 opacity-90">
-                  Join thousands of job seekers who have improved their interview skills with our AI-powered platform.
-                </p>
-                {user ? (
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button 
-                      size="lg" 
-                      variant="secondary"
-                      onClick={() => handleSubscribe('professional')}
-                    >
-                      Upgrade to Professional
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
-                    <Button 
-                      size="lg" 
-                      variant="outline" 
-                      className="border-white text-white hover:bg-white hover:text-primary"
-                      onClick={() => window.location.href = '/dashboard'}
-                    >
-                      Go to Dashboard
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button asChild size="lg" variant="secondary">
-                      <Link to="/login?signup=true">
-                        Start Free Trial
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </Link>
-                    </Button>
-                    <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
-                      <Link to="/login">
-                        Sign In
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-                <p className="text-sm mt-4 opacity-75">
-                  7-day free trial • No credit card required • Cancel anytime
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+        
       </div>
     </div>
   );

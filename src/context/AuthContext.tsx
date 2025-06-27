@@ -164,7 +164,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           name: profile.name,
           email: supabaseUser.email || '',
           avatar: supabaseUser.user_metadata?.avatar_url || generateGravatarUrl(supabaseUser.email || ''),
-          avatar: supabaseUser.user_metadata?.avatar_url || generateGravatarUrl(supabaseUser.email || ''),
           subscription_tier: profile.subscription_tier || 'free',
           total_conversation_minutes: profile.total_conversation_minutes || 25,
           used_conversation_minutes: profile.used_conversation_minutes || 0

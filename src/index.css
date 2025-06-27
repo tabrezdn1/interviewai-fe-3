@@ -6,64 +6,138 @@
 
 @layer base {
   :root {
+    /* Light Mode - Modern Blue-Purple Gradient Theme */
     --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
+    --foreground: 222 84% 4.9%;
     
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 222 84% 4.9%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
+    --popover-foreground: 222 84% 4.9%;
     
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --primary-50: 214 100% 97%;
-    --primary-100: 214 95% 93%;
-    --primary-200: 213 97% 87%;
-    --primary-300: 212 96% 78%;
-    --primary-400: 213 94% 68%;
-    --primary-500: 217 91% 60%;
-    --primary-600: 221 83% 53%;
-    --primary-700: 224 76% 48%;
-    --primary-800: 226 71% 40%;
-    --primary-900: 224 64% 33%;
-    --primary-950: 226 57% 21%;
+    /* Primary: Modern Indigo */
+    --primary: 238 100% 67%;
+    --primary-foreground: 0 0% 100%;
+    --primary-50: 238 100% 98%;
+    --primary-100: 238 100% 95%;
+    --primary-200: 238 100% 90%;
+    --primary-300: 238 100% 82%;
+    --primary-400: 238 100% 74%;
+    --primary-500: 238 100% 67%;
+    --primary-600: 238 100% 60%;
+    --primary-700: 238 100% 52%;
+    --primary-800: 238 100% 44%;
+    --primary-900: 238 100% 36%;
+    --primary-950: 238 100% 28%;
     
-    --secondary: 199 89% 48%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary: Modern Violet */
+    --secondary: 262 83% 58%;
+    --secondary-foreground: 0 0% 100%;
     
+    /* Accent: Modern Cyan */
+    --accent: 187 100% 42%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Muted */
     --muted: 220 14.3% 95.9%;
     --muted-foreground: 220 8.9% 46.1%;
     
-    --accent: 262 83% 58%;
-    --accent-foreground: 210 40% 98%;
-    
+    /* Destructive/Error */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
     
+    /* Border & Input */
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 224 71.4% 4.1%;
+    --ring: 238 100% 67%;
+    
+    /* Success */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --success-50: 141 84% 93%;
+    --success-100: 142 77% 73%;
+    --success-600: 142 76% 36%;
+    
+    /* Warning */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --warning-50: 48 96% 89%;
+    --warning-100: 48 96% 67%;
+    --warning-600: 38 92% 35%;
+    
+    /* Error */
+    --error: 0 84% 60%;
+    --error-foreground: 0 0% 100%;
     
     --radius: 0.75rem;
+  }
 
-    --success: 142 72% 50%;
+  .dark {
+    /* Dark Mode - Modern Blue-Purple Gradient Theme */
+    --background: 222 84% 4.9%;
+    --foreground: 210 40% 98%;
+    
+    --card: 222 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 222 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* Primary: Brighter Indigo for Dark Mode */
+    --primary: 238 100% 75%;
+    --primary-foreground: 222 84% 4.9%;
+    --primary-50: 238 100% 98%;
+    --primary-100: 238 100% 95%;
+    --primary-200: 238 100% 90%;
+    --primary-300: 238 100% 82%;
+    --primary-400: 238 100% 74%;
+    --primary-500: 238 100% 75%;
+    --primary-600: 238 100% 67%;
+    --primary-700: 238 100% 60%;
+    --primary-800: 238 100% 52%;
+    --primary-900: 238 100% 44%;
+    --primary-950: 238 100% 36%;
+    
+    /* Secondary: Brighter Violet for Dark Mode */
+    --secondary: 262 83% 65%;
+    --secondary-foreground: 222 84% 4.9%;
+    
+    /* Accent: Brighter Cyan for Dark Mode */
+    --accent: 187 100% 48%;
+    --accent-foreground: 222 84% 4.9%;
+    
+    /* Muted */
+    --muted: 217 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    
+    /* Destructive/Error */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    
+    /* Border & Input */
+    --border: 217 32.6% 17.5%;
+    --input: 217 32.6% 17.5%;
+    --ring: 238 100% 75%;
+    
+    /* Success */
+    --success: 142 76% 36%;
     --success-foreground: 210 40% 98%;
     --success-50: 141 84% 93%;
     --success-100: 142 77% 73%;
-    --success-600: 142 72% 29%;
+    --success-600: 142 76% 36%;
     
+    /* Warning */
     --warning: 38 92% 50%;
     --warning-foreground: 210 40% 98%;
     --warning-50: 48 96% 89%;
     --warning-100: 48 96% 67%;
     --warning-600: 38 92% 35%;
     
+    /* Error */
     --error: 0 84% 60%;
     --error-foreground: 210 40% 98%;
   }
-
-
 
   * {
     @apply border-border;
@@ -77,6 +151,7 @@
   
   body {
     @apply bg-background text-foreground antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -109,23 +184,27 @@
     @apply px-4 mx-auto max-w-7xl;
   }
   
-  /* Glassmorphism */
+  /* Glassmorphism - Updated for new theme */
   .glass {
-    @apply bg-white/70 backdrop-blur-lg;
+    @apply bg-white/70 backdrop-blur-lg dark:bg-slate-900/70;
   }
   
   .section {
     @apply py-12 md:py-16 lg:py-24;
   }
   
-  /* Modern Glossy Effect */
+  /* Modern Glossy Effect - Updated for new theme */
   .glossy {
     @apply relative overflow-hidden;
     background: linear-gradient(to right bottom, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.2));
     backdrop-filter: blur(10px);
   }
 
-  /* Fancy Border */
+  .dark .glossy {
+    background: linear-gradient(to right bottom, rgba(30, 41, 59, 0.7), rgba(30, 41, 59, 0.2));
+  }
+
+  /* Fancy Border - Updated for new theme */
   .fancy-border {
     @apply relative p-px rounded-xl overflow-hidden;
   }
@@ -134,7 +213,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--secondary)), hsl(var(--primary)));
+    background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--secondary)), hsl(var(--accent)), hsl(var(--primary)));
     background-size: 400% 100%;
     animation: border-move 4s ease infinite;
     border-radius: inherit;
@@ -144,12 +223,17 @@
     @apply relative bg-background rounded-xl;
   }
   
-  /* Enhanced tab navigation */
+  /* Enhanced tab navigation - Updated for new theme */
   .tab-navigation {
     background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  
+  .dark .tab-navigation {
+    background: rgba(30, 41, 59, 0.25);
+    border: 1px solid rgba(30, 41, 59, 0.3);
   }
   
   .tab-button {
@@ -165,7 +249,11 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
-  /* Shimmer Effect */
+  .dark .tab-button:hover {
+    background: rgba(30, 41, 59, 0.3);
+  }
+  
+  /* Shimmer Effect - Updated for new theme */
   .shimmer {
     @apply relative overflow-hidden;
   }
@@ -184,8 +272,19 @@
     animation: shimmer 2s infinite;
   }
 
+  .dark .shimmer::after {
+    background-image: linear-gradient(
+      90deg,
+      rgba(30, 41, 59, 0) 0%,
+      rgba(30, 41, 59, 0.2) 25%,
+      rgba(30, 41, 59, 0.2) 50%,
+      rgba(30, 41, 59, 0) 100%
+    );
+  }
+
+  /* Gradient Text - Updated for new theme */
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent;
   }
 
   .heading-highlight {
@@ -194,8 +293,29 @@
 
   .heading-highlight::after {
     content: "";
-    @apply absolute -bottom-1 left-0 right-0 h-[6px] bg-accent rounded-full transform origin-left;
+    @apply absolute -bottom-1 left-0 right-0 h-[6px] bg-gradient-to-r from-primary to-secondary rounded-full transform origin-left;
     animation: expand 0.8s ease-out forwards;
+  }
+
+  /* New theme-specific utilities */
+  .theme-gradient {
+    @apply bg-gradient-to-r from-primary via-secondary to-accent;
+  }
+
+  .theme-gradient-text {
+    @apply bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent;
+  }
+
+  .theme-border {
+    @apply border border-primary/20 dark:border-primary/30;
+  }
+
+  .theme-shadow {
+    @apply shadow-lg shadow-primary/10 dark:shadow-primary/20;
+  }
+
+  .theme-glow {
+    @apply shadow-lg shadow-primary/20 dark:shadow-primary/30;
   }
 }
 
@@ -226,4 +346,26 @@
   50% {
     height: 100%;
   }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+@keyframes marquee-loop {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-loop {
+  animation: marquee-loop 32s linear infinite;
 }

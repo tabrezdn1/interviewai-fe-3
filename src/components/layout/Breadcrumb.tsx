@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 interface BreadcrumbItem {
   label: string;
@@ -48,18 +48,18 @@ const Breadcrumb: React.FC = () => {
   }
 
   return (
-    <nav className="flex items-center space-x-1 text-sm text-gray-500 mb-6">
+    <nav className="flex items-center space-x-1 text-sm text-gray-500 dark:text-slate-400 mb-6">
       {breadcrumbItems.map((item, index) => (
         <React.Fragment key={item.path}>
           {index > 0 && (
-            <ChevronRight className="h-4 w-4 text-gray-400" />
+            <ChevronRight className="h-4 w-4 text-gray-400 dark:text-slate-500" />
           )}
           {item.isActive ? (
-            <span className="text-gray-900 font-medium">{item.label}</span>
+            <span className="text-gray-900 dark:text-slate-100 font-medium">{item.label}</span>
           ) : (
             <Link
               to={item.path}
-              className="hover:text-gray-700 transition-colors"
+              className="transition-colors text-gray-600 dark:text-slate-200 hover:text-gray-900 dark:hover:text-white"
             >
               {item.label}
             </Link>

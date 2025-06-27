@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
   theme: {
     container: {
       center: true,
@@ -105,6 +106,8 @@ export default {
         'bounce-slow': 'bounce 3s infinite',
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        'theme-pulse': 'theme-pulse 2s ease-in-out infinite',
+        'gradient-shift': 'gradient-shift 3s ease infinite',
       },
       keyframes: {
         "accordion-down": {
@@ -132,12 +135,30 @@ export default {
           },
         },
         glow: {
-          '0%': { boxShadow: '0 0 0 rgba(59, 130, 246, 0.3)' },
-          '100%': { boxShadow: '0 0 10px 3px rgba(59, 130, 246, 0.6)' },
+          '0%': { boxShadow: '0 0 0 rgba(99, 102, 241, 0.3)' },
+          '100%': { boxShadow: '0 0 10px 3px rgba(99, 102, 241, 0.6)' },
         },
         shimmer: {
           "100%": {
             transform: "translateX(100%)",
+          },
+        },
+        'theme-pulse': {
+          '0%, 100%': { 
+            boxShadow: '0 0 0 0 rgba(99, 102, 241, 0.4)',
+            transform: 'scale(1)'
+          },
+          '50%': { 
+            boxShadow: '0 0 0 10px rgba(99, 102, 241, 0)',
+            transform: 'scale(1.05)'
+          },
+        },
+        'gradient-shift': {
+          '0%, 100%': { 
+            backgroundPosition: '0% 50%'
+          },
+          '50%': { 
+            backgroundPosition: '100% 50%'
           },
         },
       },
@@ -145,11 +166,15 @@ export default {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
         'shimmer': 'linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0) 100%)',
+        'theme-gradient': 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 50%, hsl(var(--accent)) 100%)',
+        'theme-gradient-horizontal': 'linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 50%, hsl(var(--accent)) 100%)',
       },
       boxShadow: {
         'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
         'neon': '0 0 5px theme(colors.primary.400), 0 0 20px theme(colors.primary.600)',
-        'inner-glow': 'inset 0 0 10px rgba(59, 130, 246, 0.5)',
+        'inner-glow': 'inset 0 0 10px rgba(99, 102, 241, 0.5)',
+        'theme-glow': '0 0 20px rgba(99, 102, 241, 0.3)',
+        'theme-glow-lg': '0 0 40px rgba(99, 102, 241, 0.4)',
       },
     },
   },

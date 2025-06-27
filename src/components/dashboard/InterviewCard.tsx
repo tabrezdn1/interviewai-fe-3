@@ -62,25 +62,21 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`group flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg transition-colors ${
-        isUpcoming 
-          ? interview.prompt_status === 'generating' 
-            ? 'border-blue-200 bg-blue-50/50' 
-            : interview.prompt_status === 'failed'
-              ? 'border-red-200 bg-red-50/50'
-              : 'border-gray-200 hover:border-primary-200 hover:bg-primary-50'
-          : isCompleted
-            ? 'border-gray-200 hover:border-primary-200 hover:bg-primary-50'
-            : 'border-gray-200 bg-gray-50'
-      }`}
+      className={`group flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg transition-colors
+        ${isUpcoming && interview.prompt_status === 'generating' ? 'border-blue-200 bg-blue-50/80 dark:bg-blue-900/80 dark:border-blue-700/60' :
+          isUpcoming && interview.prompt_status === 'failed' ? 'border-red-200 bg-red-50/80 dark:bg-red-900/80 dark:border-red-700/60' :
+          isUpcoming ? 'border-white/40 bg-white/80 dark:bg-slate-900/80 dark:border-slate-700/60 hover:border-blue-200 hover:bg-blue-50/60 dark:hover:bg-blue-900/60 dark:hover:border-blue-700/60' :
+          isCompleted ? 'border-white/40 bg-white/80 dark:bg-slate-900/80 dark:border-slate-700/60 hover:border-blue-200 hover:bg-blue-50/60 dark:hover:bg-blue-900/60 dark:hover:border-blue-700/60' :
+          'border-white/40 bg-white/80 dark:bg-slate-900/80 dark:border-slate-700/60'}
+      `}
     >
       <div className="flex items-start md:items-center gap-4 mb-3 md:mb-0 flex-1">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center mt-1 md:mt-0 ${
           isUpcoming 
-            ? 'bg-warning-100' 
+            ? 'bg-yellow-100 dark:bg-yellow-900/60' 
             : isCompleted 
-              ? 'bg-success-100' 
-              : 'bg-gray-100'
+              ? 'bg-green-100 dark:bg-green-900/60' 
+              : 'bg-gray-100 dark:bg-slate-800/80'
         }`}>
           {isUpcoming ? (
             <Calendar className="h-5 w-5 text-warning-600" />
@@ -160,12 +156,12 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
       
       <div className="flex items-center gap-3">
         {isCompleted && interview.score && interview.feedback_processing_status === 'completed' && (
-          <div className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">
+          <div className="px-2 py-1 bg-green-600 text-white dark:bg-green-500 dark:text-slate-900 rounded text-sm font-medium shadow-sm">
             Score: {interview.score}%
           </div>
         )}
         {isCompleted && interview.feedback_processing_status === 'processing' && (
-          <div className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium flex items-center gap-1">
+          <div className="px-2 py-1 bg-blue-600 text-white dark:bg-blue-400 dark:text-slate-900 rounded text-sm font-medium flex items-center gap-1 shadow-sm">
             <div className="h-2 w-2 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
             <span>Processing...</span>
           </div>
