@@ -522,9 +522,9 @@ const LandingPage: React.FC = () => {
               />
               <div className="flex-1 text-center md:text-left">
                 <div className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-1">Shaik Tabrez</div>
-                <div className="text-blue-700 dark:text-blue-300 font-medium mb-2 text-lg">Senior Software Engineer · Full-Stack · Machine Learning · Cloud Solutions · Generative AI</div>
+                <div className="text-blue-700 dark:text-blue-300 font-medium mb-2 text-lg">Software Engineer · Full-Stack · Machine Learning · Cloud Solutions · Generative AI</div>
                 <div className="text-slate-600 dark:text-slate-300 text-base mb-4 max-w-2xl mx-auto md:mx-0">
-                  Tabrez is a Senior Software Engineer with 5+ years of experience in full-stack development, AI, and cloud-native solutions. He's worked with startups and enterprises, building scalable apps using JavaScript, Python, Node.js, FastAPI, React, Next.js, and more. Tabrez is passionate about AI, automation, and delivering real results—fast.
+                  Tabrez is a Software Engineer with 5 years of experience in full-stack development, Generative AI, and cloud-native solutions. He's worked with startups and enterprises, building scalable apps using JavaScript, Python, Node.js, FastAPI, React, Next.js, and more. Tabrez is passionate about Machine Learning, Generative AI, CLoud Automation, and delivering real impactful results fast.
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-3">
                   {['Full-Stack', 'Machine Learning', 'Cloud Solutions', 'DevOps', 'Microservices', 'Generative AI'].map((tag) => (
