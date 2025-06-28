@@ -15,6 +15,7 @@ import Billing from './pages/Billing';
 
 import AuthProvider from './components/auth/AuthProvider';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import AuthenticatedLayout from './components/layout/AuthenticatedLayout';
 
 function App() {
   // Add keyboard shortcut to toggle debug panel visibility
@@ -41,7 +42,7 @@ function App() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
           >
             <Routes>
               <Route path="/" element={<LandingPage />} />
@@ -49,50 +50,50 @@ function App() {
               <Route 
                 path="/settings" 
                 element={
-                  <ProtectedRoute>
+                  <AuthenticatedLayout>
                     <Settings />
-                  </ProtectedRoute>
+                  </AuthenticatedLayout>
                 } 
               />
               <Route path="/pricing" element={<Pricing />} />
               <Route 
                 path="/billing" 
                 element={
-                  <ProtectedRoute>
+                  <AuthenticatedLayout>
                     <Billing />
-                  </ProtectedRoute>
+                  </AuthenticatedLayout>
                 } 
               />
               <Route 
                 path="/dashboard" 
                 element={
-                  <ProtectedRoute>
+                  <AuthenticatedLayout showBackButton={false}>
                     <Dashboard />
-                  </ProtectedRoute>
+                  </AuthenticatedLayout>
                 } 
               />
               <Route 
                 path="/setup" 
                 element={
-                  <ProtectedRoute>
+                  <AuthenticatedLayout>
                     <InterviewSetup />
-                  </ProtectedRoute>
+                  </AuthenticatedLayout>
                 } 
               />
               <Route 
                 path="/interview/:id" 
                 element={
-                  <ProtectedRoute>
+                  <AuthenticatedLayout showBackButton={false} showBreadcrumb={false}>
                     <InterviewSession />
-                  </ProtectedRoute>
+                  </AuthenticatedLayout>
                 } 
               />
               <Route 
                 path="/feedback/:id" 
                 element={
-                  <ProtectedRoute>
+                  <AuthenticatedLayout>
                     <FeedbackAnalysis />
-                  </ProtectedRoute>
+                  </AuthenticatedLayout>
                 } 
               />
               <Route path="*" element={<NotFound />} />
