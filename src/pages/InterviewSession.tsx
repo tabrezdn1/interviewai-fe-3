@@ -283,7 +283,7 @@ const InterviewSessionContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen transition-colors duration-500 bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-black dark:via-black dark:to-black text-gray-900 dark:text-white">
+    <div className="min-h-screen transition-colors duration-500 bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-black dark:via-black dark:to-black text-gray-900 dark:text-white pt-0">
       {/* Top controls */}
       <div className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-black/80 border-b border-gray-200 dark:border-gray-800 py-3 px-4 z-20 backdrop-blur-md transition-colors duration-500">
         <div className="container-custom mx-auto flex justify-between items-center">
@@ -345,7 +345,7 @@ const InterviewSessionContent: React.FC = () => {
       </div>
       
       {/* Main video area - now full width */}
-      <div className="pt-16 min-h-screen">
+      <div className="pt-14 sm:pt-16 min-h-screen">
         <div className="h-full p-4">
           {callActive && (
             <InterviewCall
@@ -361,7 +361,7 @@ const InterviewSessionContent: React.FC = () => {
               conversationUrl={interviewData.tavus_conversation_url}
               onCallEnd={() => setShowEndCallConfirm(true)}
               onError={handleVideoError}
-              className="w-full h-[calc(100vh-6rem)]"
+              className="w-full h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)]"
             />
           )}
           

@@ -327,7 +327,7 @@ const FeedbackAnalysis: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden pt-24 pb-12">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Background gradient for light theme, pure black for dark */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />

@@ -181,5 +181,6 @@ export default {
   plugins: [
     require('tailwindcss-animate'),
     require('tailwind-scrollbar')
+    require('tailwind-scrollbar')
   ],
 };

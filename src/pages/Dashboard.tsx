@@ -481,9 +481,7 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen pt-16 sm:pt-20 lg:pt-24 pb-8 sm:pb-12 relative overflow-hidden">
       {/* Full-screen fixed gradient background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Light theme: soft blue/purple gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />
-        {/* Dark theme: pure black background only */}
         <div className="absolute inset-0 hidden dark:block bg-black" />
       </div>
       

@@ -113,7 +113,7 @@ const Login: React.FC = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen pt-16 sm:pt-20 lg:pt-24 flex items-center justify-center px-4 sm:px-6 relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+      <div className="min-h-screen pt-14 sm:pt-16 lg:pt-20 flex items-center justify-center px-4 sm:px-6 relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       {/* Glassmorphism blurred layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] sm:w-[80vw] h-[70vh] sm:h-[60vh] rounded-2xl sm:rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl shadow-2xl" />
@@ -202,6 +202,8 @@ const Login: React.FC = () => {
                   <span className="text-sm sm:text-base">
                     {isSubmitting ? 'Connecting...' : 'Continue with Google'}
                   </span>
+                    {isSubmitting ? 'Connecting...' : 'Continue with Google'}
+                  </span>
                 </Button>
                 
                 <Button
@@ -214,12 +216,16 @@ const Login: React.FC = () => {
                   <span className="text-sm sm:text-base">
                     {isSubmitting ? 'Connecting...' : 'Continue with GitHub'}
                   </span>
+                    {isSubmitting ? 'Connecting...' : 'Continue with GitHub'}
+                  </span>
                 </Button>
                 
                 <div className="relative my-4 sm:my-6">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-gray-300 dark:border-gray-600" />
                   </div>
+                    <span className="w-full border-t border-gray-300 dark:border-gray-600" />
+                    <span className="bg-white dark:bg-slate-900 px-2 text-gray-500 dark:text-gray-400">
                   <div className="relative flex justify-center text-xs sm:text-sm uppercase">
                     <span className="bg-white dark:bg-slate-900 px-2 text-gray-500 dark:text-gray-400">
                       Or continue with
@@ -237,7 +243,7 @@ const Login: React.FC = () => {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {isSignUp ? (
                   <EmailSignUpForm 
                     onSubmit={handleEmailSignUp} 
@@ -256,6 +262,8 @@ const Login: React.FC = () => {
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-gray-300 dark:border-gray-600" />
                   </div>
+                  <div className="relative flex justify-center text-xs sm:text-sm uppercase">
+                    <span className="bg-white dark:bg-slate-900 px-2 text-gray-500 dark:text-gray-400">
                   <div className="relative flex justify-center text-xs sm:text-sm uppercase">
                     <span className="bg-white dark:bg-slate-900 px-2 text-gray-500 dark:text-gray-400">
                       Or
@@ -286,6 +294,13 @@ const Login: React.FC = () => {
               >
                 {isSignUp ? 'Sign in' : 'Sign up'}
               </button>
+            </div>
+            
+            <div className="text-center text-xs text-gray-500 dark:text-gray-500">
+              By continuing, you agree to our{' '}
+              <a href="#" className="text-primary hover:underline">Terms of Service</a>
+              {' '}and{' '}
+              <a href="#" className="text-primary hover:underline">Privacy Policy</a>
             </div>
             
             <div className="text-center text-xs text-gray-500 dark:text-gray-500">

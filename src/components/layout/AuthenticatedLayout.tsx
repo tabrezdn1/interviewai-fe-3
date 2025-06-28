@@ -20,7 +20,7 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({
     <ProtectedRoute>
       <div className="min-h-screen bg-background text-foreground font-sans">
         <Navbar />
-        <div className="pt-24 pb-12 relative overflow-hidden">
+        <div className="pt-14 sm:pt-16 lg:pt-20 pb-8 sm:pb-12 relative overflow-hidden">
           {/* Full-screen fixed gradient background */}
           <div className="fixed inset-0 z-0 pointer-events-none">
             {/* Light theme: soft blue/purple gradient */}
