@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
-  Clock, X, AlertCircle, PauseCircle, PlayCircle, Settings, ChevronLeft
+  Clock, X, AlertCircle, PauseCircle, PlayCircle, Settings, ChevronLeft, Loader2
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { getInterview, completeInterview, startFeedbackProcessing } from '../services/InterviewService';
+import { getInterview, startFeedbackProcessing } from '../services/InterviewService';
 import { useMediaAccess } from '../hooks/useMediaAccess';
 import VideoInterviewSetup from '../components/interview/VideoInterviewSetup';
 import { useAuth } from '../hooks/useAuth';
@@ -55,6 +55,7 @@ const InterviewSessionContent: React.FC = () => {
   const [showEndCallConfirm, setShowEndCallConfirm] = useState(false);
   const [responses, setResponses] = useState<Record<number, string>>({});
   const [showSettings, setShowSettings] = useState(false);
+  const [isEndingCall, setIsEndingCall] = useState(false);
   const [callActive, setCallActive] = useState(false);
   
   // Media access for user video/audio
@@ -138,98 +139,6 @@ const InterviewSessionContent: React.FC = () => {
     }
   }, [loading, isPaused, timeRemaining, callActive]);
 
-  const handleCompleteInterview = async (actualMinutesUsed?: number) => {
-    try {
-      if (id && interviewData) {
-       // Calculate actual time elapsed in seconds
-       const timeElapsed = interviewData.duration * 60 - timeRemaining;
-       
-       // Convert to minutes (rounded up)
-       const minutesUsed = actualMinutesUsed || Math.ceil(timeElapsed / 60);
-       
-       // Check if interview was too short for meaningful feedback (less than 20 seconds)
-       if (timeElapsed < 20) {
-         console.log('Interview too short for feedback generation:', timeElapsed, 'seconds');
-         
-         // Update interview with failed feedback status
-         if (isSupabaseConfigured()) {
-           await supabase
-             .from('interviews')
-             .update({ 
-               status: 'completed',
-               completed_at: new Date().toISOString(),
-               feedback_processing_status: 'failed',
-               prompt_error: 'Call duration too short for feedback generation. Minimum 20 seconds required.'
-             })
-             .eq('id', id);
-         }
-         
-         // Navigate to feedback page anyway
-         navigate(`/feedback/${id}`);
-         return;
-       }
-       
-        // Use actual minutes used or full duration
-        
-        // Start feedback processing if we have a Tavus conversation
-        if (conversation?.conversation_id) {
-          console.log('Starting feedback processing for conversation:', conversation.conversation_id);
-         const feedbackStarted = await startFeedbackProcessing(id, conversation.conversation_id, interviewData);
-          if (!feedbackStarted) {
-            console.warn('Failed to start feedback processing, but continuing...');
-          }
-        } else {
-          console.warn('No Tavus conversation ID available for feedback processing');
-        }
-        
-        // Prepare mock feedback data
-        const feedbackData = {
-          overallScore: Math.floor(Math.random() * 30) + 70,
-          questions: Object.entries(responses).map(([qIndex, response]) => {
-            const questionIndex = Number(qIndex);
-            const question = interviewData.questions[questionIndex];
-            return {
-              id: question.id,
-              text: question.text,
-              answer: response,
-              score: Math.floor(Math.random() * 30) + 70,
-              analysis: "The candidate showed good understanding of the topic.",
-              feedback: "Consider providing more concrete examples next time."
-            };
-          }),
-          feedback: {
-            summary: "Overall good performance with room for improvement in specific areas.",
-            overallScore: Math.floor(Math.random() * 30) + 70,
-            strengths: ["Clear communication", "Good technical knowledge", "Structured answers"],
-            improvements: ["More detailed examples", "Deeper technical explanations"],
-            skillAssessment: {
-              technical: { score: Math.floor(Math.random() * 30) + 70, feedback: "Good technical foundation." },
-              communication: { score: Math.floor(Math.random() * 30) + 70, feedback: "Clear communication skills." },
-              problemSolving: { score: Math.floor(Math.random() * 30) + 70, feedback: "Solid problem-solving approach." },
-              experience: { score: Math.floor(Math.random() * 30) + 70, feedback: "Good experience demonstration." }
-            }
-          }
-        };
-        
-        await completeInterview(id, feedbackData);
-        
-        // Update conversation minutes with actual usage if not already done
-        if (user && !actualMinutesUsed) {
-          try {
-            await updateConversationMinutes(user.id, minutesUsed);
-          } catch (error) {
-            console.error('Failed to update conversation minutes:', error);
-          }
-        }
-      }
-      
-      navigate(`/feedback/${id}`);
-    } catch (error) {
-      console.error('Error completing interview:', error);
-      navigate(`/feedback/${id}`); // Navigate anyway for demo purposes
-    }
-  };
-  
   const togglePause = () => {
     setIsPaused(!isPaused);
   };
@@ -259,6 +168,7 @@ const InterviewSessionContent: React.FC = () => {
   };
 
   const confirmEndCall = async () => {
+    setIsEndingCall(true);
     try {
       // Close the confirmation dialog first
       setShowEndCallConfirm(false);
@@ -266,11 +176,42 @@ const InterviewSessionContent: React.FC = () => {
       // Calculate actual minutes used (time elapsed)
       const timeElapsed = Math.ceil((interviewData?.duration * 60 - timeRemaining) / 60);
       
+      // Check if interview was too short for meaningful feedback (less than 20 seconds)
+      const timeElapsedSeconds = interviewData?.duration * 60 - timeRemaining;
+      if (timeElapsedSeconds < 20) {
+        console.log('Interview too short for feedback generation:', timeElapsedSeconds, 'seconds');
+        
+        // Update interview with failed feedback status
+        try {
+          await supabase
+            .from('interviews')
+            .update({ 
+              status: 'completed',
+              completed_at: new Date().toISOString(),
+              feedback_processing_status: 'failed',
+              prompt_error: 'Call duration too short for feedback generation. Minimum 20 seconds required.'
+            })
+            .eq('id', id);
+        } catch (error) {
+          console.error('Error updating interview status for short call:', error);
+        }
+        
+        // Navigate to dashboard
+        navigate('/dashboard');
+        return;
+      }
+      
       // Set call as inactive to stop the video component
       setCallActive(false);
       
       // Cleanup media streams
       cleanupMedia();
+      
+      // Start feedback processing if we have a Tavus conversation
+      if (conversation?.conversation_id && id && interviewData) {
+        console.log('Starting feedback processing for conversation:', conversation.conversation_id);
+        await startFeedbackProcessing(id, conversation.conversation_id, interviewData);
+      }
       
       // Update conversation minutes with actual usage
       if (user && timeElapsed > 0) {
@@ -281,12 +222,13 @@ const InterviewSessionContent: React.FC = () => {
         }
       }
       
-      // Small delay to ensure video component cleanup, then proceed to complete the interview
-      setTimeout(() => {
-        handleCompleteInterview(timeElapsed);
-      }, 1000);
+      // Navigate to dashboard to see the processing status
+      navigate('/dashboard');
       
     } catch (error) {
+      setIsEndingCall(false);
+      setShowEndCallConfirm(false);
+      
       console.error('Error ending call:', error);
       // Still proceed to complete the interview
       handleCompleteInterview();
@@ -448,30 +390,39 @@ const InterviewSessionContent: React.FC = () => {
         <div className="fixed inset-0 bg-white/80 dark:bg-black/90 flex items-center justify-center p-4 z-50 transition-colors duration-500">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={{ opacity: 1, scale: isEndingCall ? 0.95 : 1 }}
             transition={{ duration: 0.2 }}
-            className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full shadow-xl border border-gray-200 dark:border-gray-700 transition-colors duration-500"
+            className={`bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full shadow-xl border border-gray-200 dark:border-gray-700 transition-all duration-500 ${isEndingCall ? 'opacity-80' : ''}`}
           >
-            <h3 className="text-2xl font-semibold mb-4 dark:text-white">End Interview?</h3>
-            <p className="text-gray-700 dark:text-gray-300 mb-8 text-lg">
+            <h3 className="text-2xl font-semibold mb-4 dark:text-white">
+              {isEndingCall ? 'Ending Interview...' : 'End Interview?'}
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-6 text-lg">
               Are you sure you want to end this interview? This will complete your session and generate feedback.
             </p>
-            <div className="flex gap-6">
-              <Button
-                onClick={() => setShowEndCallConfirm(false)}
-                variant="ghost"
-                className="flex-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-600 py-6 text-lg"
-              >
-                Continue Interview
-              </Button>
-              <Button
-                onClick={confirmEndCall}
-                variant="destructive"
-                className="flex-1 py-6 text-lg"
-              >
-                End Interview
-              </Button>
-            </div>
+            {isEndingCall ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-3 text-gray-700 dark:text-gray-300">Processing your interview...</span>
+              </div>
+            ) : (
+              <div className="flex gap-6">
+                <Button
+                  onClick={() => setShowEndCallConfirm(false)}
+                  variant="ghost"
+                  className="flex-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-600 py-6 text-lg"
+                >
+                  Continue Interview
+                </Button>
+                <Button
+                  onClick={confirmEndCall}
+                  variant="destructive"
+                  className="flex-1 py-6 text-lg"
+                >
+                  End Interview
+                </Button>
+              </div>
+            )}
           </motion.div>
         </div>
       )}
@@ -511,6 +462,12 @@ const InterviewSessionContent: React.FC = () => {
       
     </div>
   );
+  
+  // Fallback function for error handling
+  function handleCompleteInterview(actualMinutesUsed?: number) {
+    console.error('Fallback handleCompleteInterview called - this should not happen normally');
+    navigate('/dashboard');
+  }
 };
 
 // Main component - now with Daily provider handled internally
