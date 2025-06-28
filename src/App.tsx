@@ -13,7 +13,7 @@ import Settings from './pages/Settings';
 import Pricing from './pages/Pricing';
 import Billing from './pages/Billing';
 
-import AuthProvider from './components/auth/AuthProvider';
+import AuthProvider from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AuthenticatedLayout from './components/layout/AuthenticatedLayout';
 
