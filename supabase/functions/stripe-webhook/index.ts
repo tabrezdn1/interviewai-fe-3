@@ -4,6 +4,20 @@ import { createClient } from 'npm:@supabase/supabase-js@2.39.7';
 import { corsHeaders } from '../_shared/cors.ts';
 import { Database } from '../_shared/database.types.ts';
 
+// Function to determine conversation minutes based on tier and interval
+function getMinutesForPlan(tier: string, isAnnual: boolean): number {
+  switch (tier) {
+    case 'intro':
+      return isAnnual ? 720 : 60;
+    case 'professional':
+      return isAnnual ? 3960 : 330;
+    case 'executive':
+      return isAnnual ? 10800 : 900;
+    default: // free tier
+      return 25;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -90,8 +104,16 @@ serve(async (req) => {
         const userId = session.metadata.user_id;
         const subscriptionId = session.subscription;
         if (!userId || !subscriptionId) {
-          console.error('Missing user_id or subscription_id in session metadata');
-          throw new Error('Missing user_id or subscription_id in session metadata');
+          console.error('Missing user_id or subscription_id in session metadata', session.metadata);
+          return new Response(JSON.stringify({
+            error: 'Missing user_id or subscription_id in session metadata'
+          }), {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json'
+            },
+            status: 400
+          });
         }
 
         console.log(`Found user_id: ${userId} and subscription_id: ${subscriptionId}`);
@@ -125,20 +147,34 @@ serve(async (req) => {
         // Determine if this is an annual subscription
         const isAnnual = price.recurring?.interval === 'year';
         console.log(`Is annual subscription: ${isAnnual}`);
-        
-        // Determine conversation minutes based on tier and interval
-        let conversationMinutes = 60; // Default for intro monthly
-        if (subscriptionTier === 'intro') {
-          conversationMinutes = isAnnual ? 720 : 60;
-        } else if (subscriptionTier === 'professional') {
-          conversationMinutes = isAnnual ? 3960 : 330;
-        } else if (subscriptionTier === 'executive') {
-          conversationMinutes = isAnnual ? 10800 : 900;
-        }
-        console.log(`Determined conversation minutes: ${conversationMinutes}`);
 
-        // Update user profile with subscription info
-        const { data: profileData, error: profileError } = await supabase.from('profiles').update({
+        // Get the new plan minutes
+        const newPlanMinutes = getMinutesForPlan(subscriptionTier, isAnnual);
+        console.log(`New plan minutes: ${newPlanMinutes}`);
+
+        // Get the user's current profile to calculate carried over minutes
+        const { data: currentProfile, error: profileFetchError } = await supabase
+          .from('profiles')
+          .select('total_conversation_minutes, used_conversation_minutes')
+          .eq('id', userId)
+          .single();
+
+        if (profileFetchError) {
+          console.error('Error fetching user profile:', profileFetchError);
+          // Continue with default values if we can't fetch the profile
+        }
+
+        // Calculate minutes to carry over (remaining unused minutes)
+        const currentTotal = currentProfile?.total_conversation_minutes || 0;
+        const currentUsed = currentProfile?.used_conversation_minutes || 0;
+        const remainingMinutes = Math.max(0, currentTotal - currentUsed);
+        
+        // Add carried over minutes to the new plan minutes
+        const totalMinutes = newPlanMinutes + remainingMinutes;
+        console.log(`Carrying over ${remainingMinutes} unused minutes. New total: ${totalMinutes}`);
+
+        // Update user profile with subscription info and reset used minutes
+        const { error: profileUpdateError } = await supabase.from('profiles').update({
           subscription_tier: subscriptionTier,
           subscription_status: 'active',
           current_subscription_id: subscriptionId,
@@ -146,14 +182,51 @@ serve(async (req) => {
           subscription_current_period_end: new Date(subscription.current_period_end * 1000),
           subscription_cancel_at_period_end: subscription.cancel_at_period_end,
           stripe_customer_id: subscription.customer,
-          total_conversation_minutes: conversationMinutes
+          total_conversation_minutes: totalMinutes,
+          used_conversation_minutes: 0 // Reset used minutes on new subscription
         }).eq('id', userId);
 
-        if (profileError) {
-          console.error('Error updating profile:', profileError);
-          throw new Error(`Failed to update profile: ${profileError.message}`);
+        if (profileUpdateError) {
+          console.error('Error updating profile:', profileUpdateError);
+          
+          // Log the error but continue with the webhook processing
+          await supabase.rpc('log_webhook_event', {
+            event_type: event.type,
+            event_data: event.data.object,
+            processing_result: 'error: profile update failed',
+            user_id: userId,
+            subscription_id: subscriptionId,
+            customer_id: subscription.customer,
+            minutes_before: currentTotal,
+            minutes_after: totalMinutes,
+            carried_over_minutes: remainingMinutes
+          });
+          
+          return new Response(JSON.stringify({
+            error: `Failed to update profile: ${profileUpdateError.message}`
+          }), {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json'
+            },
+            status: 500
+          });
         }
-        console.log('Profile updated successfully');
+        
+        console.log('Profile updated successfully with carried over minutes');
+        
+        // Log successful subscription update with minute details
+        await supabase.rpc('log_webhook_event', {
+          event_type: event.type,
+          event_data: event.data.object,
+          processing_result: 'success',
+          user_id: userId,
+          subscription_id: subscriptionId,
+          customer_id: subscription.customer,
+          minutes_before: currentTotal,
+          minutes_after: totalMinutes,
+          carried_over_minutes: remainingMinutes
+        });
         
         // Insert subscription record
         const { error: subscriptionError } = await supabase.from('subscriptions').upsert({
@@ -234,9 +307,9 @@ serve(async (req) => {
         
         // Determine subscription tier from product name
         let subscriptionTier = 'intro'; // Default
-        if (product.name.toLowerCase().includes('professional')) {
+        if (product.name && product.name.toLowerCase().includes('professional')) {
           subscriptionTier = 'professional';
-        } else if (product.name.toLowerCase().includes('executive')) {
+        } else if (product.name && product.name.toLowerCase().includes('executive')) {
           subscriptionTier = 'executive';
         }
         console.log(`Determined subscription tier: ${subscriptionTier}`);
@@ -244,34 +317,85 @@ serve(async (req) => {
         // Determine if this is an annual subscription
         const isAnnual = price.recurring?.interval === 'year';
         console.log(`Is annual subscription: ${isAnnual}`);
-        
-        // Determine conversation minutes based on tier and interval
-        let conversationMinutes = 60; // Default for intro monthly
-        if (subscriptionTier === 'intro') {
-          conversationMinutes = isAnnual ? 720 : 60;
-        } else if (subscriptionTier === 'professional') {
-          conversationMinutes = isAnnual ? 3960 : 330;
-        } else if (subscriptionTier === 'executive') {
-          conversationMinutes = isAnnual ? 10800 : 900;
+
+        // Get the new plan minutes
+        const newPlanMinutes = getMinutesForPlan(subscriptionTier, isAnnual);
+        console.log(`New plan minutes: ${newPlanMinutes}`);
+
+        // Get the user's current profile to calculate carried over minutes
+        const { data: currentProfile, error: profileFetchError } = await supabase
+          .from('profiles')
+          .select('total_conversation_minutes, used_conversation_minutes')
+          .eq('id', userId)
+          .single();
+
+        if (profileFetchError) {
+          console.error('Error fetching user profile:', profileFetchError);
+          // Continue with default values if we can't fetch the profile
         }
-        console.log(`Determined conversation minutes: ${conversationMinutes}`);
+
+        // Calculate minutes to carry over (remaining unused minutes)
+        const currentTotal = currentProfile?.total_conversation_minutes || 0;
+        const currentUsed = currentProfile?.used_conversation_minutes || 0;
+        const remainingMinutes = Math.max(0, currentTotal - currentUsed);
         
-        // Update user profile with subscription info
-        const { data: profileData, error: profileError } = await supabase.from('profiles').update({
+        // Add carried over minutes to the new plan minutes
+        const totalMinutes = newPlanMinutes + remainingMinutes;
+        console.log(`Carrying over ${remainingMinutes} unused minutes. New total: ${totalMinutes}`);
+
+        // Update user profile with subscription info and reset used minutes
+        const { error: profileUpdateError } = await supabase.from('profiles').update({
           subscription_tier: subscriptionTier,
           subscription_status: subscription.status,
           current_subscription_id: subscription.id,
           subscription_current_period_start: new Date(subscription.current_period_start * 1000),
           subscription_current_period_end: new Date(subscription.current_period_end * 1000),
           subscription_cancel_at_period_end: subscription.cancel_at_period_end,
-          total_conversation_minutes: conversationMinutes
+          total_conversation_minutes: totalMinutes,
+          used_conversation_minutes: 0 // Reset used minutes on subscription renewal
         }).eq('id', userId);
 
-        if (profileError) {
-          console.error('Error updating profile:', profileError);
-          throw new Error(`Failed to update profile: ${profileError.message}`);
+        if (profileUpdateError) {
+          console.error('Error updating profile:', profileUpdateError);
+          
+          // Log the error but continue with the webhook processing
+          await supabase.rpc('log_webhook_event', {
+            event_type: event.type,
+            event_data: event.data.object,
+            processing_result: 'error: profile update failed',
+            user_id: userId,
+            subscription_id: subscription.id,
+            customer_id: subscription.customer,
+            minutes_before: currentTotal,
+            minutes_after: totalMinutes,
+            carried_over_minutes: remainingMinutes
+          });
+          
+          return new Response(JSON.stringify({
+            error: `Failed to update profile: ${profileUpdateError.message}`
+          }), {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json'
+            },
+            status: 500
+          });
         }
-        console.log('Profile updated successfully');
+        
+        console.log('Profile updated successfully with carried over minutes');
+        
+        // Log successful subscription update with minute details
+        await supabase.rpc('log_webhook_event', {
+          event_type: event.type,
+          event_data: event.data.object,
+          processing_result: 'success',
+          user_id: userId,
+          subscription_id: subscription.id,
+          customer_id: subscription.customer,
+          minutes_before: currentTotal,
+          minutes_after: totalMinutes,
+          carried_over_minutes: remainingMinutes
+        });
         
         // Update subscription record
         const { error: subscriptionError } = await supabase.from('subscriptions').upsert({
@@ -345,12 +469,13 @@ serve(async (req) => {
         // Update user profile
         const { data: profileData, error: profileError } = await supabase.from('profiles').update({
           subscription_tier: 'free',
-          subscription_status: 'inactive',
+          subscription_status: 'canceled',
           current_subscription_id: null,
           subscription_current_period_end: null,
           subscription_current_period_start: null,
           subscription_cancel_at_period_end: false,
-          total_conversation_minutes: 25 // Reset to free tier minutes
+          // Keep the existing total_conversation_minutes to preserve any remaining minutes
+          // Don't reset used_conversation_minutes either
         }).eq('id', userId);
 
         if (profileError) {
@@ -361,7 +486,7 @@ serve(async (req) => {
         
         // Update subscription record
         const { error: subscriptionError } = await supabase.from('subscriptions').update({
-          status: 'canceled',
+          status: subscription.status || 'canceled',
           canceled_at: new Date(),
           updated_at: new Date()
         }).eq('id', subscription.id);
@@ -379,6 +504,10 @@ serve(async (req) => {
       case 'invoice.paid': {
         const invoice = event.data.object;
         console.log('Processing invoice.paid event');
+
+        // Check if this is a subscription renewal
+        const isRenewal = invoice.billing_reason === 'subscription_cycle';
+        console.log(`Is subscription renewal: ${isRenewal}`);
         
         const customerId = invoice.customer;
         const subscriptionId = invoice.subscription;
@@ -423,6 +552,61 @@ serve(async (req) => {
           // Don't throw here, as this is not critical
         } else {
           console.log('Invoice record inserted successfully');
+        }
+
+        // If this is a subscription renewal, update the user's conversation minutes
+        if (isRenewal && subscriptionId) {
+          console.log('Processing subscription renewal');
+          
+          // Get subscription details
+          const { data: subscriptionData, error: subscriptionError } = await supabase
+            .from('subscriptions')
+            .select('plan_id, user_id')
+            .eq('id', subscriptionId)
+            .single();
+            
+          if (subscriptionError) {
+            console.error('Error fetching subscription:', subscriptionError);
+          } else if (subscriptionData) {
+            // Get plan details
+            const { data: planData, error: planError } = await supabase
+              .from('subscription_plans')
+              .select('*')
+              .eq('id', subscriptionData.plan_id)
+              .single();
+              
+            if (planError) {
+              console.error('Error fetching plan:', planError);
+            } else if (planData) {
+              // Get user's current profile
+              const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('total_conversation_minutes, used_conversation_minutes')
+                .eq('id', subscriptionData.user_id)
+                .single();
+                
+              if (profileError) {
+                console.error('Error fetching profile:', profileError);
+              } else if (profileData) {
+                // Calculate remaining minutes to carry over
+                const remainingMinutes = Math.max(0, profileData.total_conversation_minutes - profileData.used_conversation_minutes);
+                const newTotalMinutes = planData.conversation_minutes + remainingMinutes;
+                
+                // Update profile with new total and reset used minutes
+                const { error: updateError } = await supabase
+                  .from('profiles')
+                  .update({
+                    total_conversation_minutes: newTotalMinutes,
+                    used_conversation_minutes: 0
+                  })
+                  .eq('id', subscriptionData.user_id);
+                  
+                if (updateError) {
+                  console.error('Error updating profile on renewal:', updateError);
+                }
+              }
+            }
+          }
         }
         
         break;
