@@ -67,6 +67,7 @@ const Dashboard: React.FC = () => {
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const hasFetchedData = useRef(false);
+  const lastUserIdRef = useRef<string | null>(null);
 
   // Function to transform API data to Interview interface
   const transformInterviewData = (apiData: any[]): Interview[] => {
@@ -144,14 +145,24 @@ const Dashboard: React.FC = () => {
   // Initial data fetch
   useEffect(() => {
     console.log('📊 Dashboard: Initial useEffect for data fetch', { 
-      hasUser: !!user, 
-      authLoading, 
-      dataLoading 
+      hasUser: !!user,
+      userId: user?.id,
+      authLoading,
+      dataLoading,
+      hasFetchedData: hasFetchedData.current,
+      lastUserId: lastUserIdRef.current
     });
     
-    // Only fetch data if we have a user and auth is not loading
-    if (user && !authLoading && !hasFetchedData.current) {
-      console.log('📊 Dashboard: Fetching data - user available and auth not loading');
+    // Reset fetch state if user changes
+    if (user?.id !== lastUserIdRef.current) {
+      console.log('📊 Dashboard: User changed, resetting fetch state');
+      hasFetchedData.current = false;
+      lastUserIdRef.current = user?.id || null;
+    }
+    
+    // Only fetch data if we have a user, auth is not loading, and we haven't fetched data yet
+    if (user?.id && !authLoading && !hasFetchedData.current) {
+      console.log('📊 Dashboard: Fetching data - user available, auth not loading, and data not yet fetched');
       hasFetchedData.current = true;
       setDataLoading(true);
       fetchInterviewsData(true);
@@ -161,18 +172,9 @@ const Dashboard: React.FC = () => {
       setInterviews([]);
       setDataLoading(false);
       hasFetchedData.current = false;
+      lastUserIdRef.current = null;
     }
-    // If authLoading is true, do nothing - wait for it to complete
-  }, [user, authLoading]); // Remove fetchInterviewsData from dependencies to prevent loops
-  
-  // Additional effect to refresh data when user becomes available after navigation
-  useEffect(() => {
-    if (user && !authLoading && !dataLoading && interviews.length === 0 && !hasFetchedData.current) {
-      console.log('📊 Dashboard: User available but no data, refreshing...');
-      hasFetchedData.current = true;
-      fetchInterviewsData(true);
-    }
-  }, [user, authLoading, dataLoading, interviews.length]); // Remove fetchInterviewsData from dependencies
+  }, [user?.id, authLoading, fetchInterviewsData]);
   
   // Timeout fallback: stop loading after 10s
   useEffect(() => {

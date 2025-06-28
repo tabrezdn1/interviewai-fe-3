@@ -13,11 +13,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (loading) {
     console.log('🛡️ ProtectedRoute: Showing loading spinner');
     // You could render a loading spinner here
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <video src="/loading.webm" autoPlay loop muted playsInline className="w-20 h-20 object-contain" />
-      </div>
-    );
+    return null;
   }
 
   if (!isAuthenticated) {

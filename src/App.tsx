@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-// Pages - using default imports
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import InterviewSetup from './pages/InterviewSetup';
@@ -14,8 +13,6 @@ import Settings from './pages/Settings';
 import Pricing from './pages/Pricing';
 import Billing from './pages/Billing';
 
-// Components - using default imports
-import Navbar from './components/layout/Navbar';
 import AuthProvider from './components/auth/AuthProvider';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -40,8 +37,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="min-h-screen bg-background text-foreground font-sans">
-          <Navbar />
+        <div className="min-h-screen bg-background text-foreground font-sans relative">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

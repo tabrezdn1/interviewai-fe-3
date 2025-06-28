@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import { Session, User, Provider } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { generateGravatarUrl } from '../lib/utils.tsx';
+import { clearAuthTokens } from '../lib/supabase';
 
 export interface UserProfile {
   id: string;
@@ -48,6 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Initialize user session on load
   useEffect(() => {
     const getUserSession = async () => {
+      setLoading(true);
       try {
         console.log('🔑 AuthContext: Getting user session...');
         // Check active session
@@ -70,7 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         // Listen for auth state changes
         const { data: { subscription } } = await supabase.auth.onAuthStateChange(
-          async (event, session) => {
+          async (event, session) => {  
             console.log("Auth state change event:", event, "Has session:", !!session);
 
             // Log specific SIGNED_OUT events for debugging
@@ -78,18 +80,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               console.log('🔑 AuthContext: SIGNED_OUT event received, setting user to null');
             }
 
-            // Only set loading to true for sign-in and sign-up events
-            // This prevents unnecessary loading states when just navigating between pages
-            const shouldShowLoading = ['SIGNED_IN', 'SIGNED_UP'].includes(event) && !session;
-            if (shouldShowLoading && authInitialized) {
-              console.log('🔑 AuthContext: SIGNED_OUT event received, setting user to null');
+            // Set loading to true for all auth state changes except TOKEN_REFRESHED
+            if (event !== 'TOKEN_REFRESHED' && authInitialized) {
+              setLoading(true);
             }
-
 
             if (session) {
               console.log('🔑 AuthContext: Auth state change with session, handling session');
               await handleSession(session);
-            } else if (event !== 'TOKEN_REFRESHED') {
+            } else {
               console.log('🔑 AuthContext: Auth state change without session, setting user to null');
               setUser(null);
             }
@@ -218,7 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (
     provider: string,
-    credentials?: { email: string; password: string },
+    credentials?: { email: string; password: string },  
     options?: { redirectTo?: string }
   ): Promise<void> => {
     setLoading(true);
@@ -274,29 +273,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async (): Promise<void> => {
     try {
       console.log('Logout initiated...');
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
-      if (error) {
-        console.error('Error in supabase.auth.signOut():', JSON.stringify(error, null, 2));
-        throw error;
-      }
+      setLoading(true);
+      
+      // First clear any tokens from localStorage
+      await clearAuthTokens();
+      
+      // Then call signOut
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       
       console.log('Supabase signOut successful');
       setUser(null);
       
       // Redirect to home page after logout
       console.log('Redirecting to home page...');
-      setTimeout(() => {
-        console.log('Executing redirect to home page');
-        window.location.href = '/';
-      }, 100);
+      window.location.href = '/';
     } catch (error) {
-      console.error('Error logging out:', JSON.stringify(error, null, 2));
+      console.error('Error logging out:', error);
       // Even if there's an error, clear the user state and redirect
       setUser(null);
-      setTimeout(() => {
-        console.log('Executing redirect after error');
-        window.location.href = '/';
-      }, 100);
+      window.location.href = '/';
     }
   };
 

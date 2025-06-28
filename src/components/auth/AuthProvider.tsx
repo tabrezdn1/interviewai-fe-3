@@ -12,6 +12,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       console.log('🔐 AuthProvider: Initializing auth...')
+      setIsInitialized(false);
       try {
         // Check if we have any auth tokens that might be invalid
         const { data: { session }, error } = await supabase.auth.getSession()
@@ -24,11 +25,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         if (error) {
           console.warn('Auth initialization error:', error.message)
-          
+
           // If we get a refresh token error, clear everything and start fresh
           if (error.message?.includes('refresh_token_not_found') || 
               error.message?.includes('Invalid Refresh Token')) {
-            console.log('Clearing invalid auth tokens...')
+            console.log('🔐 AuthProvider: Clearing invalid auth tokens...')
             await clearAuthTokens()
           }
         }
@@ -49,11 +50,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Show loading state while initializing
   if (!isInitialized) {
     console.log('🔐 AuthProvider: Rendering loading state (isInitialized=false)')
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <video src="/loading.webm" autoPlay loop muted playsInline className="w-20 h-20 object-contain" />
-      </div>
-    )
+    return null;
   }
 
   console.log('🔐 AuthProvider: Rendering children (isInitialized=true)')
