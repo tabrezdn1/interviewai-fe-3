@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MessageSquare, Github, Mail } from 'lucide-react';
+import Navbar from '../components/layout/Navbar';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -110,7 +111,9 @@ const Login: React.FC = () => {
   }
   
   return (
-    <div className="min-h-screen pt-16 sm:pt-20 lg:pt-24 flex items-center justify-center px-4 sm:px-6 relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <>
+      <Navbar />
+      <div className="min-h-screen pt-16 sm:pt-20 lg:pt-24 flex items-center justify-center px-4 sm:px-6 relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       {/* Glassmorphism blurred layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] sm:w-[80vw] h-[70vh] sm:h-[60vh] rounded-2xl sm:rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl shadow-2xl" />
@@ -294,7 +297,8 @@ const Login: React.FC = () => {
           </CardFooter>
         </Card>
       </motion.div>
-    </div>
+      </div>
+    </>
   );
 };
 
