@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { supabase, clearAuthTokens } from '../../lib/supabase'
 import { AuthProvider as AuthContextProvider } from '../../context/AuthContext'
-import { useAuth } from '../../hooks/useAuth'
 
 interface AuthProviderProps {
   children: React.ReactNode
@@ -52,7 +51,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('🔐 AuthProvider: Rendering loading state (isInitialized=false)')
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <video src="/loading.webm" autoPlay loop muted playsInline className="w-20 h-20 object-contain" />
       </div>
     )
   }

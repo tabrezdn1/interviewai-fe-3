@@ -683,3 +683,10 @@
 /* Hide scrollbar utility */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@media (max-width: 639px) {
+  body {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
