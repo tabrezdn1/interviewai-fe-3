@@ -234,6 +234,8 @@ const InterviewSessionContent: React.FC = () => {
       navigate('/dashboard');
     }
   };
+
+  if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center transition-colors duration-500 bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-black dark:via-black dark:to-black text-gray-900 dark:text-white">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary dark:border-blue-500 mb-6"></div>
