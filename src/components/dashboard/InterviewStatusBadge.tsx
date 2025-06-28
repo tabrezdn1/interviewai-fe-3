@@ -15,6 +15,13 @@ const InterviewStatusBadge: React.FC<InterviewStatusBadgeProps> = ({
   feedbackStatus,
   className = '' 
 }) => {
+  // Debug log for status values
+  console.log(`🏷️ InterviewStatusBadge: Rendering badge for status`, {
+    status,
+    promptStatus,
+    feedbackStatus
+  });
+  
   // For scheduled interviews, show prompt status
   if (status === 'scheduled' && promptStatus) {
     switch (promptStatus) {

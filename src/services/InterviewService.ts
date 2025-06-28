@@ -319,8 +319,14 @@ export async function getInterview(id: string) {
 
 export async function startFeedbackProcessing(interviewId: string, tavusConversationId: string, interviewDetails?: any) {
   try {
+    console.log('🔄 InterviewService.startFeedbackProcessing: Starting for interview', interviewId);
+    console.log('🔄 InterviewService.startFeedbackProcessing: Using conversation ID', tavusConversationId);
+    
     // Check if Supabase is configured before making requests
     if (isSupabaseConfigured()) {
+      console.log('🔄 InterviewService.startFeedbackProcessing: Updating interview status to completed and processing feedback');
+      
+      // First, update the interview status to completed
       const { error: updateError } = await supabase
         .from('interviews')
         .update({
@@ -332,11 +338,16 @@ export async function startFeedbackProcessing(interviewId: string, tavusConversa
       
       if (updateError) {
         console.error('Error updating interview status to processing:', updateError);
+         console.log('🔄 InterviewService.startFeedbackProcessing: Failed to update interview status', updateError);
+         return false;
+      } else {
+        console.log('🔄 InterviewService.startFeedbackProcessing: Successfully updated interview status');
       }
     }
 
     // Call the simulate-feedback Edge Function directly
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    console.log('🔄 InterviewService.startFeedbackProcessing: Calling simulate-feedback edge function');
     
     try {
       console.log('Calling simulate-feedback function with:', { 
@@ -352,22 +363,26 @@ export async function startFeedbackProcessing(interviewId: string, tavusConversa
       });
 
       if (error) {
+        console.log('🔄 InterviewService.startFeedbackProcessing: Edge function returned error', error);
         console.error('Error starting feedback processing:', error);
         return false;
       }
 
+      console.log('🔄 InterviewService.startFeedbackProcessing: Edge function call successful', data);
       console.log('Feedback simulation started successfully:', data);
-      return true;
+      return true; // Successfully started feedback processing
     } catch (invokeError) {
       console.error('Error invoking simulate-feedback function:', invokeError);
       
       // For testing purposes, we'll still return true to update the UI
       // In production, you would want to return false here
       console.log('Returning true despite error for testing purposes');
+      console.log('🔄 InterviewService.startFeedbackProcessing: Returning true despite edge function error');
       return true;
     }
   } catch (error) {
     console.error('Error in startFeedbackProcessing:', error);
+    console.log('🔄 InterviewService.startFeedbackProcessing: Caught error in main function', error);
     return false;
   }
 }

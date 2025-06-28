@@ -95,6 +95,7 @@ const Dashboard: React.FC = () => {
   // Function to fetch interviews data
   const fetchInterviewsData = useCallback(async (showLoadingState = false) => {
     console.log('📊 Dashboard: fetchInterviewsData called', { showLoadingState, userId: user?.id });
+    
     setFetchError(null);
     if (showLoadingState) setIsRefreshing(true);
     setDataLoading(true);
@@ -118,8 +119,15 @@ const Dashboard: React.FC = () => {
       // Clear the timeout since we got a response
       clearTimeout(loadingTimeout);
       
+      // Log the raw interview data for debugging
+      console.log('📊 Dashboard: Raw interview data from API:', data);
+      
       setConversationMinutes(minutes);
       const transformedData = transformInterviewData(data);
+      
+      // Log the transformed interview data
+      console.log('📊 Dashboard: Transformed interview data:', transformedData);
+      
       setInterviews(transformedData);
       generateRecentActivities(transformedData);
       console.log('📊 Dashboard: Data set successfully');

@@ -171,19 +171,24 @@ const InterviewSessionContent: React.FC = () => {
   const confirmEndCall = async () => {
     setIsEndingCall(true);
     try {
+      console.log('🎯 InterviewSession: confirmEndCall - Starting interview completion process');
       // Close the confirmation dialog first
       setShowEndCallConfirm(false);
       
       // Calculate actual minutes used (time elapsed)
       const timeElapsed = Math.ceil((interviewData?.duration * 60 - timeRemaining) / 60);
+      console.log('🎯 InterviewSession: confirmEndCall - Time elapsed:', timeElapsed, 'minutes');
       
       // Check if interview was too short for meaningful feedback (less than 20 seconds)
       const timeElapsedSeconds = interviewData?.duration * 60 - timeRemaining;
+      console.log('🎯 InterviewSession: confirmEndCall - Time elapsed in seconds:', timeElapsedSeconds);
+      
       if (timeElapsedSeconds < 20) {
         console.log('Interview too short for feedback generation:', timeElapsedSeconds, 'seconds');
         
         // Update interview with failed feedback status
         try {
+          console.log('🎯 InterviewSession: confirmEndCall - Updating interview status for short call');
           await supabase
             .from('interviews')
             .update({ 
@@ -193,6 +198,7 @@ const InterviewSessionContent: React.FC = () => {
               prompt_error: 'Call duration too short for feedback generation. Minimum 20 seconds required.'
             })
             .eq('id', id);
+          console.log('🎯 InterviewSession: confirmEndCall - Successfully updated interview status for short call');
         } catch (error) {
           console.error('Error updating interview status for short call:', error);
         }
@@ -204,26 +210,33 @@ const InterviewSessionContent: React.FC = () => {
       
       // Set call as inactive to stop the video component
       setCallActive(false);
+      console.log('🎯 InterviewSession: confirmEndCall - Set call as inactive');
       
       // Cleanup media streams
       cleanupMedia();
+      console.log('🎯 InterviewSession: confirmEndCall - Cleaned up media streams');
       
       // Start feedback processing if we have a Tavus conversation
       if (conversation?.conversation_id && id && interviewData) {
         console.log('Starting feedback processing for conversation:', conversation.conversation_id);
-        await startFeedbackProcessing(id, conversation.conversation_id, interviewData);
+        console.log('🎯 InterviewSession: confirmEndCall - About to call startFeedbackProcessing');
+        const feedbackStarted = await startFeedbackProcessing(id, conversation.conversation_id, interviewData);
+        console.log('🎯 InterviewSession: confirmEndCall - startFeedbackProcessing result:', feedbackStarted);
       }
       
       // Update conversation minutes with actual usage
       if (user && timeElapsed > 0) {
         try {
+          console.log('🎯 InterviewSession: confirmEndCall - Updating conversation minutes:', timeElapsed);
           await updateConversationMinutes(user.id, timeElapsed);
+          console.log('🎯 InterviewSession: confirmEndCall - Successfully updated conversation minutes');
         } catch (error) {
           console.error('Failed to update conversation minutes:', error);
         }
       }
       
       // Navigate to dashboard to see the processing status
+      console.log('🎯 InterviewSession: confirmEndCall - Navigating to dashboard');
       navigate('/dashboard');
       
     } catch (error) {
@@ -231,6 +244,7 @@ const InterviewSessionContent: React.FC = () => {
       setShowEndCallConfirm(false);
       
       console.error('Error ending call:', error);
+      console.log('🎯 InterviewSession: confirmEndCall - Error occurred, navigating to dashboard anyway');
       // Navigate to dashboard anyway
       navigate('/dashboard');
     }
