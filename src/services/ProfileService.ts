@@ -81,17 +81,24 @@ export async function updateProfileSettings(userId: string, updates: Partial<Use
     
     // Update profile if there are changes
     if (Object.keys(profileUpdates).length > 0) {
-      const { error } = await updateProfile(userId, profileUpdates);
-      if (error) throw error;
+      const result = await updateProfile(userId, profileUpdates);
+      if (!result) throw new Error('Failed to update profile');
     }
     
-    // Update email if provided (requires special auth call)
-    if (updates.profile?.email) {
-      const { error } = await supabase.auth.updateUser({
-        email: updates.profile.email
-      });
+    // Only update email if it's actually being changed (and not just the same email)
+    if (updates.profile?.email && updates.profile.email !== '') {
+      // Get current user to check if email is actually changing
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
       
-      if (error) throw error;
+      // Only update if email is actually different
+      if (user?.email !== updates.profile.email) {
+        const { error } = await supabase.auth.updateUser({
+          email: updates.profile.email
+        });
+        
+        if (error) throw error;
+      }
     }
     
     return true;

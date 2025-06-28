@@ -368,398 +368,400 @@ const FeedbackAnalysis: React.FC = () => {
   const uniqueImprovements = feedbackData.improvements ? Array.from(new Set(feedbackData.improvements)) : [];
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Background gradient for light theme, pure black for dark */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />
-        <div className="absolute inset-0 hidden dark:block bg-black" />
-      </div>
-      <div className="container-custom mx-auto relative z-10">
-        <Breadcrumb />
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-bold mb-2">Interview Feedback</h1>
-          <p className="text-gray-600">
-            {feedbackData.title} • {new Date(feedbackData.date).toLocaleDateString('en-US', { 
-              month: 'long', 
-              day: 'numeric',
-              year: 'numeric'
-            })}
-            {feedbackData.company && ` • ${feedbackData.company}`}
-            {feedbackData.role && ` • ${feedbackData.role}`}
-          </p>
-        </motion.div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          <div className="lg:col-span-2">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-              className="mb-8"
-            >
-              <Card className="overflow-hidden bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700 rounded-lg h-[70vh] min-h-[350px] sm:min-h-[500px] flex flex-col">
-                <div className="border-b border-gray-200 dark:border-slate-700 overflow-x-auto">
-                  <div className="flex overflow-x-auto flex-nowrap w-full">
-                    <button
-                      className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
-                        activeTab === 'summary'
-                          ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
-                          : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
-                      }`}
-                      onClick={() => setActiveTab('summary')}
-                    >
-                      Summary
-                    </button>
-                    <button
-                      className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
-                        activeTab === 'skills'
-                          ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
-                          : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
-                      }`}
-                      onClick={() => setActiveTab('skills')}
-                    >
-                      Skills Assessment
-                    </button>
-                    <button
-                      className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
-                        activeTab === 'transcript'
-                          ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
-                          : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
-                      }`}
-                      onClick={() => setActiveTab('transcript')}
-                    >
-                      Transcript
-                    </button>
-                    <button
-                      className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
-                        activeTab === 'analysis'
-                          ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
-                          : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
-                      }`}
-                      onClick={() => setActiveTab('analysis')}
-                    >
-                      Analysis
-                    </button>
-                  </div>
+    <>
+      <Breadcrumb />
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="mb-8"
+      >
+        <h1 className="text-3xl font-bold mb-2">Interview Feedback</h1>
+        <p className="text-gray-600">
+          {feedbackData.title} • {new Date(feedbackData.date).toLocaleDateString('en-US', { 
+            month: 'long', 
+            day: 'numeric',
+            year: 'numeric'
+          })}
+          {feedbackData.company && ` • ${feedbackData.company}`}
+          {feedbackData.role && ` • ${feedbackData.role}`}
+        </p>
+      </motion.div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+        <div className="lg:col-span-2">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="mb-8"
+          >
+            <Card className="overflow-hidden bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700 rounded-lg h-[70vh] min-h-[350px] sm:min-h-[500px] flex flex-col">
+              <div className="border-b border-gray-200 dark:border-slate-700 overflow-x-auto">
+                <div className="flex overflow-x-auto flex-nowrap w-full">
+                  <button
+                    className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
+                      activeTab === 'summary'
+                        ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
+                        : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                    onClick={() => setActiveTab('summary')}
+                  >
+                    Summary
+                  </button>
+                  <button
+                    className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
+                      activeTab === 'skills'
+                        ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
+                        : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                    onClick={() => setActiveTab('skills')}
+                  >
+                    Skills Assessment
+                  </button>
+                  <button
+                    className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
+                      activeTab === 'transcript'
+                        ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
+                        : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                    onClick={() => setActiveTab('transcript')}
+                  >
+                    Transcript
+                  </button>
+                  <button
+                    className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
+                      activeTab === 'analysis'
+                        ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
+                        : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                    onClick={() => setActiveTab('analysis')}
+                  >
+                    Analysis
+                  </button>
                 </div>
-                
-                <CardContent className="p-4 sm:p-6 flex-1 overflow-y-auto">
-                  {/* Summary Tab */}
-                  {activeTab === 'summary' && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="mb-6">
-                        <h2 className="text-xl font-semibold mb-3 dark:text-slate-100">Overall Performance</h2>
-                        <p className="text-gray-700 dark:text-slate-300 mb-6">{feedbackData.summary}</p>
-                        {uniqueStrengths.length > 0 && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <h3 className="font-medium mb-3 text-green-700 dark:text-green-300 flex items-center gap-2">
-                                <ThumbsUp className="h-5 w-5" />
-                                Strengths
-                              </h3>
-                              <ul className="space-y-2">
-                                {uniqueStrengths.map((strength, index) => (
-                                  <li key={index} className="flex items-start gap-2">
-                                    <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900 flex-shrink-0 flex items-center justify-center mt-0.5">
-                                      <span className="text-green-700 dark:text-green-300 text-xs">✓</span>
-                                    </div>
-                                    <span className="text-gray-700 dark:text-slate-200">{strength}</span>
-                                  </li>
-                                ))}
-                              </ul>
+              </div>
+              
+              <CardContent className="p-4 sm:p-6 flex-1 overflow-y-auto">
+                {/* Summary Tab */}
+                {activeTab === 'summary' && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="mb-8">
+                      <h2 className="text-2xl sm:text-3xl font-bold mb-4 dark:text-slate-100">Overall Performance</h2>
+                      <p className="text-base sm:text-lg text-gray-700 dark:text-slate-300 mb-8 leading-relaxed">{feedbackData.summary}</p>
+                      <div className="bg-gray-50 dark:bg-slate-900/80 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm p-6 sm:p-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          {/* Strengths */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-4">
+                              <ThumbsUp className="h-6 w-6 text-green-500" />
+                              <h3 className="text-xl font-semibold text-green-700 dark:text-green-300">Strengths</h3>
                             </div>
-                            
-                            <div>
-                              <h3 className="font-medium mb-3 text-amber-700 dark:text-amber-300 flex items-center gap-2">
-                                <ThumbsDown className="h-5 w-5" />
-                                Areas for Improvement
-                              </h3>
-                              <ul className="space-y-2">
-                                {uniqueImprovements.map((improvement, index) => (
-                                  <li key={index} className="flex items-start gap-2">
-                                    <div className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900 flex-shrink-0 flex items-center justify-center mt-0.5">
-                                      <span className="text-amber-700 dark:text-amber-300 text-xs">!</span>
-                                    </div>
-                                    <span className="text-gray-700 dark:text-slate-200">{improvement}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
+                            <ul className="space-y-4">
+                              {uniqueStrengths.length > 0 ? uniqueStrengths.map((strength, index) => (
+                                <li key={index} className="flex items-start gap-3">
+                                  <span className="mt-1">
+                                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 dark:bg-green-900">
+                                      <span className="text-green-700 dark:text-green-300 text-lg">✓</span>
+                                    </span>
+                                  </span>
+                                  <span className="text-base text-gray-800 dark:text-slate-200 leading-snug">{strength}</span>
+                                </li>
+                              )) : (
+                                <li className="text-gray-500 dark:text-slate-400">No strengths identified.</li>
+                              )}
+                            </ul>
                           </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                  
-                  {/* Skills Assessment Tab */}
-                  {activeTab === 'skills' && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="mb-6">
-                        <h2 className="text-xl font-semibold mb-4">Skills Assessment</h2>
-                        
-                        <div className="space-y-6">
-                          <SkillBar 
-                            label="Technical Knowledge" 
-                            score={feedbackData.skillAssessment.technical.score} 
-                            feedback={feedbackData.skillAssessment.technical.feedback}
-                            color="bg-blue-500"
-                          />
-                          
-                          <SkillBar 
-                            label="Communication" 
-                            score={feedbackData.skillAssessment.communication.score} 
-                            feedback={feedbackData.skillAssessment.communication.feedback}
-                            color="bg-green-500"
-                          />
-                          
-                          <SkillBar 
-                            label="Problem Solving" 
-                            score={feedbackData.skillAssessment.problemSolving.score} 
-                            feedback={feedbackData.skillAssessment.problemSolving.feedback}
-                            color="bg-orange-500"
-                          />
-                          <SkillBar 
-                            label="Experience" 
-                            score={feedbackData.skillAssessment.experience.score} 
-                            feedback={feedbackData.skillAssessment.experience.feedback}
-                            color="bg-purple-500"
-                          />
+                          {/* Areas for Improvement */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-4">
+                              <ThumbsDown className="h-6 w-6 text-amber-500" />
+                              <h3 className="text-xl font-semibold text-amber-700 dark:text-amber-300">Areas for Improvement</h3>
+                            </div>
+                            <ul className="space-y-4">
+                              {uniqueImprovements.length > 0 ? uniqueImprovements.map((improvement, index) => (
+                                <li key={index} className="flex items-start gap-3">
+                                  <span className="mt-1">
+                                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900">
+                                      <span className="text-amber-700 dark:text-amber-300 text-lg">!</span>
+                                    </span>
+                                  </span>
+                                  <span className="text-base text-gray-800 dark:text-slate-200 leading-snug">{improvement}</span>
+                                </li>
+                              )) : (
+                                <li className="text-gray-500 dark:text-slate-400">No areas for improvement identified.</li>
+                              )}
+                            </ul>
+                          </div>
                         </div>
                       </div>
-                    </motion.div>
-                  )}
-                  
-                  {/* Transcript Tab */}
-                  {activeTab === 'transcript' && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex flex-col h-full"
-                    >
-                      <h2 className="text-xl font-semibold mb-3">Interview Transcript</h2>
-                      <div className="flex-1 min-h-0">
-                        {feedbackData.transcript ? (
-                          <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700 mb-6 max-h-full overflow-y-auto">
-                            <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-slate-200">
-                              {feedbackData.transcript && feedbackData.transcript.includes('user: ')
-                                ? feedbackData.transcript.substring(feedbackData.transcript.indexOf('user: '))
-                                : feedbackData.transcript}
-                            </pre>
-                          </div>
-                        ) : (
-                          <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700 mb-6">
-                            <p className="text-gray-500 dark:text-slate-400 italic">No transcript available for this interview.</p>
-                          </div>
-                        )}
+                    </div>
+                  </motion.div>
+                )}
+                
+                {/* Skills Assessment Tab */}
+                {activeTab === 'skills' && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold mb-4">Skills Assessment</h2>
+                      
+                      <div className="space-y-6">
+                        <SkillBar 
+                          label="Technical Knowledge" 
+                          score={feedbackData.skillAssessment.technical.score} 
+                          feedback={feedbackData.skillAssessment.technical.feedback}
+                          color="bg-blue-500"
+                        />
+                        
+                        <SkillBar 
+                          label="Communication" 
+                          score={feedbackData.skillAssessment.communication.score} 
+                          feedback={feedbackData.skillAssessment.communication.feedback}
+                          color="bg-green-500"
+                        />
+                        
+                        <SkillBar 
+                          label="Problem Solving" 
+                          score={feedbackData.skillAssessment.problemSolving.score} 
+                          feedback={feedbackData.skillAssessment.problemSolving.feedback}
+                          color="bg-orange-500"
+                        />
+                        <SkillBar 
+                          label="Experience" 
+                          score={feedbackData.skillAssessment.experience.score} 
+                          feedback={feedbackData.skillAssessment.experience.feedback}
+                          color="bg-purple-500"
+                        />
                       </div>
-                    </motion.div>
-                  )}
-                  {/* Analysis Tab */}
-                  {activeTab === 'analysis' && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="mb-6">
-                        <h2 className="text-xl font-semibold mb-3">AI Analysis</h2>
-                        {feedbackData.tavus_analysis ? (
-                          <div className="prose dark:prose-invert max-w-none text-base leading-relaxed">
-                            <ReactMarkdown>{
-                              typeof feedbackData.tavus_analysis === 'string'
-                                ? feedbackData.tavus_analysis
-                                : JSON.stringify(feedbackData.tavus_analysis, null, 2)
-                            }</ReactMarkdown>
-                          </div>
-                        ) : (
-                          <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
-                            <p className="text-gray-500 dark:text-slate-400 italic">No detailed analysis available for this interview.</p>
-                          </div>
-                        )}
+                    </div>
+                  </motion.div>
+                )}
+                
+                {/* Transcript Tab */}
+                {activeTab === 'transcript' && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex flex-col h-full"
+                  >
+                    <h2 className="text-xl font-semibold mb-3">Interview Transcript</h2>
+                    <div className="flex-1 min-h-0">
+                      {feedbackData.transcript ? (
+                        <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700 mb-6 max-h-full overflow-y-auto">
+                          <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-slate-200">
+                            {feedbackData.transcript && feedbackData.transcript.includes('user: ')
+                              ? feedbackData.transcript.substring(feedbackData.transcript.indexOf('user: '))
+                              : feedbackData.transcript}
+                          </pre>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700 mb-6">
+                          <p className="text-gray-500 dark:text-slate-400 italic">No transcript available for this interview.</p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+                {/* Analysis Tab */}
+                {activeTab === 'analysis' && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold mb-3">AI Analysis</h2>
+                      {feedbackData.tavus_analysis ? (
+                        <div className="prose dark:prose-invert max-w-none text-base leading-relaxed">
+                          <ReactMarkdown>{
+                            typeof feedbackData.tavus_analysis === 'string'
+                              ? feedbackData.tavus_analysis
+                              : JSON.stringify(feedbackData.tavus_analysis, null, 2)
+                          }</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
+                          <p className="text-gray-500 dark:text-slate-400 italic">No detailed analysis available for this interview.</p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+        
+        <div className="lg:col-span-1 w-full lg:sticky lg:top-24">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="mb-8 lg:mb-0"
+          >
+            {feedbackData.processing_status === 'processing' ? (
+              <Card className="mb-6 bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700 rounded-lg">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-semibold text-lg">Generating Feedback</h3>
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                      <video src="/loading.webm" autoPlay loop muted playsInline className="w-8 h-8 object-contain" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center justify-center mb-4">
+                    <div className="relative w-32 h-32 flex items-center justify-center">
+                      <video src="/loading.webm" autoPlay loop muted playsInline className="w-24 h-24 object-contain" />
+                      <div className="text-center absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <p className="text-lg font-medium text-gray-600 dark:text-slate-200">Generating</p>
+                        <p className="text-sm text-gray-500 dark:text-slate-400">Please wait</p>
                       </div>
-                    </motion.div>
-                  )}
+                    </div>
+                  </div>
+                  <div className="text-center mb-6">
+                    <p className="text-sm text-gray-600 dark:text-slate-400">
+                      Your feedback is being generated. This may take a few minutes.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
-            </motion.div>
-          </div>
-          
-          <div className="lg:col-span-1 w-full lg:sticky lg:top-24">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-              className="mb-8 lg:mb-0"
-            >
-              {feedbackData.processing_status === 'processing' ? (
+            ) : (
+              <>
                 <Card className="mb-6 bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700 rounded-lg">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-6">
-                      <h3 className="font-semibold text-lg">Generating Feedback</h3>
-                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                        <video src="/loading.webm" autoPlay loop muted playsInline className="w-8 h-8 object-contain" />
+                      <h3 className="font-semibold text-lg">Overall Score</h3>
+                      <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-blue-900 flex items-center justify-center">
+                        <BarChart2 className="h-5 w-5 text-primary-600 dark:text-blue-400" />
                       </div>
                     </div>
-                    <div className="flex flex-col items-center justify-center mb-4">
-                      <div className="relative w-32 h-32 flex items-center justify-center">
-                        <video src="/loading.webm" autoPlay loop muted playsInline className="w-24 h-24 object-contain" />
-                        <div className="text-center absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <p className="text-lg font-medium text-gray-600 dark:text-slate-200">Generating</p>
-                          <p className="text-sm text-gray-500 dark:text-slate-400">Please wait</p>
+                    
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="relative w-32 h-32">
+                        <svg className="w-full h-full" viewBox="0 0 100 100">
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="45"
+                            fill="none"
+                            stroke="#e5e7eb"
+                            strokeWidth="10"
+                          />
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="45"
+                            fill="none"
+                            stroke={getScoreColor(feedbackData.overallScore)}
+                            strokeWidth="10"
+                            strokeDasharray={`${2 * Math.PI * 45 * feedbackData.overallScore / 100} ${2 * Math.PI * 45 * (1 - feedbackData.overallScore / 100)}`}
+                            strokeDashoffset={2 * Math.PI * 45 * 0.25}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-3xl font-bold dark:text-slate-100">{feedbackData.overallScore}</span>
                         </div>
                       </div>
                     </div>
+                    
                     <div className="text-center mb-6">
-                      <p className="text-sm text-gray-600 dark:text-slate-400">
-                        Your feedback is being generated. This may take a few minutes.
+                      <p className="text-lg font-medium dark:text-slate-200">
+                        {getScoreRating(feedbackData.overallScore)}
                       </p>
                     </div>
                   </CardContent>
                 </Card>
-              ) : (
-                <>
-                  <Card className="mb-6 bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700 rounded-lg">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-center mb-6">
-                        <h3 className="font-semibold text-lg">Overall Score</h3>
-                        <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-blue-900 flex items-center justify-center">
-                          <BarChart2 className="h-5 w-5 text-primary-600 dark:text-blue-400" />
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-center mb-4">
-                        <div className="relative w-32 h-32">
-                          <svg className="w-full h-full" viewBox="0 0 100 100">
-                            <circle
-                              cx="50"
-                              cy="50"
-                              r="45"
-                              fill="none"
-                              stroke="#e5e7eb"
-                              strokeWidth="10"
-                            />
-                            <circle
-                              cx="50"
-                              cy="50"
-                              r="45"
-                              fill="none"
-                              stroke={getScoreColor(feedbackData.overallScore)}
-                              strokeWidth="10"
-                              strokeDasharray={`${2 * Math.PI * 45 * feedbackData.overallScore / 100} ${2 * Math.PI * 45 * (1 - feedbackData.overallScore / 100)}`}
-                              strokeDashoffset={2 * Math.PI * 45 * 0.25}
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-3xl font-bold dark:text-slate-100">{feedbackData.overallScore}</span>
+                {/* New Card for Key Metrics and Interview Configuration */}
+                <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700 rounded-lg">
+                  <CardContent className="p-6">
+                    <h3 className="font-medium text-lg mb-4 dark:text-slate-100">Key Metrics</h3>
+                    <div className="flex flex-row flex-wrap gap-4 mb-6">
+                      {feedbackData.overallScore > 0 && (
+                        <MetricCard 
+                          label="Overall Score" 
+                          value={`${feedbackData.overallScore}%`} 
+                          icon={<Award className="h-5 w-5 text-primary-600" />}
+                        />
+                      )}
+                      {feedbackData.duration > 0 && (
+                        <MetricCard 
+                          label="Duration" 
+                          value={`${feedbackData.duration} min`} 
+                          icon={<Clock className="h-5 w-5 text-primary-600" />}
+                        />
+                      )}
+                      {feedbackData.questionResponses.length > 0 && (
+                        <MetricCard 
+                          label="Questions" 
+                          value={feedbackData.questionResponses.length.toString()} 
+                          icon={<MessageSquare className="h-5 w-5 text-primary-600" />}
+                        />
+                      )}
+                    </div>
+                    <h4 className="font-medium text-base mb-3 dark:text-slate-100">Interview Configuration</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {feedbackData.role && (
+                        <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-purple-50/40 dark:bg-purple-900/30">
+                          <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center mb-1">
+                            <Briefcase className="h-4 w-4 text-purple-600 dark:text-purple-300" />
+                          </div>
+                          <div className="text-center sm:text-left">
+                            <p className="text-xs text-gray-500">Position</p>
+                            <p className="text-sm font-medium break-words">{feedbackData.role}</p>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div className="text-center mb-6">
-                        <p className="text-lg font-medium dark:text-slate-200">
-                          {getScoreRating(feedbackData.overallScore)}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  {/* New Card for Key Metrics and Interview Configuration */}
-                  <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700 rounded-lg">
-                    <CardContent className="p-6">
-                      <h3 className="font-medium text-lg mb-4 dark:text-slate-100">Key Metrics</h3>
-                      <div className="flex flex-row flex-wrap gap-4 mb-6">
-                        {feedbackData.overallScore > 0 && (
-                          <MetricCard 
-                            label="Overall Score" 
-                            value={`${feedbackData.overallScore}%`} 
-                            icon={<Award className="h-5 w-5 text-primary-600" />}
-                          />
-                        )}
-                        {feedbackData.duration > 0 && (
-                          <MetricCard 
-                            label="Duration" 
-                            value={`${feedbackData.duration} min`} 
-                            icon={<Clock className="h-5 w-5 text-primary-600" />}
-                          />
-                        )}
-                        {feedbackData.questionResponses.length > 0 && (
-                          <MetricCard 
-                            label="Questions" 
-                            value={feedbackData.questionResponses.length.toString()} 
-                            icon={<MessageSquare className="h-5 w-5 text-primary-600" />}
-                          />
-                        )}
-                      </div>
-                      <h4 className="font-medium text-base mb-3 dark:text-slate-100">Interview Configuration</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {feedbackData.role && (
-                          <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-purple-50/40 dark:bg-purple-900/30">
-                            <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center mb-1">
-                              <Briefcase className="h-4 w-4 text-purple-600 dark:text-purple-300" />
-                            </div>
-                            <div className="text-center sm:text-left">
-                              <p className="text-xs text-gray-500">Position</p>
-                              <p className="text-sm font-medium break-words">{feedbackData.role}</p>
-                            </div>
+                      )}
+                      {feedbackData.company && (
+                        <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-indigo-50/40 dark:bg-indigo-900/30">
+                          <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center mb-1">
+                            <Building className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
                           </div>
-                        )}
-                        {feedbackData.company && (
-                          <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-indigo-50/40 dark:bg-indigo-900/30">
-                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center mb-1">
-                              <Building className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
-                            </div>
-                            <div className="text-center sm:text-left">
-                              <p className="text-xs text-gray-500">Company</p>
-                              <p className="text-sm font-medium break-words">{feedbackData.company}</p>
-                            </div>
+                          <div className="text-center sm:text-left">
+                            <p className="text-xs text-gray-500">Company</p>
+                            <p className="text-sm font-medium break-words">{feedbackData.company}</p>
                           </div>
-                        )}
-                        {feedbackData.difficulty_levels && (
-                          <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-blue-50/40 dark:bg-blue-900/30">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mb-1">
-                              <Award className="h-4 w-4 text-blue-600 dark:text-blue-300" />
-                            </div>
-                            <div className="text-center sm:text-left">
-                              <p className="text-xs text-gray-500">Difficulty Level</p>
-                              <p className="text-sm font-medium break-words">{feedbackData.difficulty_levels.label}</p>
-                            </div>
+                        </div>
+                      )}
+                      {feedbackData.difficulty_levels && (
+                        <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-blue-50/40 dark:bg-blue-900/30">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mb-1">
+                            <Award className="h-4 w-4 text-blue-600 dark:text-blue-300" />
                           </div>
-                        )}
-                        {feedbackData.experience_levels && (
-                          <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-green-50/40 dark:bg-green-900/30">
-                            <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mb-1">
-                              <User className="h-4 w-4 text-green-600 dark:text-green-300" />
-                            </div>
-                            <div className="text-center sm:text-left">
-                              <p className="text-xs text-gray-500">Experience Level</p>
-                              <p className="text-sm font-medium break-words">{feedbackData.experience_levels.label}</p>
-                            </div>
+                          <div className="text-center sm:text-left">
+                            <p className="text-xs text-gray-500">Difficulty Level</p>
+                            <p className="text-sm font-medium break-words">{feedbackData.difficulty_levels.label}</p>
                           </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
-            </motion.div>
-          </div>
+                        </div>
+                      )}
+                      {feedbackData.experience_levels && (
+                        <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-green-50/40 dark:bg-green-900/30">
+                          <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mb-1">
+                            <User className="h-4 w-4 text-green-600 dark:text-green-300" />
+                          </div>
+                          <div className="text-center sm:text-left">
+                            <p className="text-xs text-gray-500">Experience Level</p>
+                            <p className="text-sm font-medium break-words">{feedbackData.experience_levels.label}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </motion.div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

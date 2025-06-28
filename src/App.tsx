@@ -48,16 +48,23 @@ function App() {
               <Route 
                 path="/settings" 
                 element={
-                  <AuthenticatedLayout showBackButton={false}>
+                  <AuthenticatedLayout showBackButton={false} showBreadcrumb={false}>
                     <Settings />
                   </AuthenticatedLayout>
                 } 
               />
-              <Route path="/pricing" element={<Pricing />} />
+              <Route 
+                path="/pricing" 
+                element={
+                  <AuthenticatedLayout showBackButton={false} showBreadcrumb={false}>
+                    <Pricing />
+                  </AuthenticatedLayout>
+                } 
+              />
               <Route 
                 path="/billing" 
                 element={
-                  <AuthenticatedLayout showBackButton={false}>
+                  <AuthenticatedLayout showBackButton={false} showBreadcrumb={false}>
                     <Billing />
                   </AuthenticatedLayout>
                 } 
@@ -73,7 +80,7 @@ function App() {
               <Route 
                 path="/setup" 
                 element={
-                  <AuthenticatedLayout showBackButton={false}>
+                  <AuthenticatedLayout showBackButton={false} showBreadcrumb={false}>
                     <InterviewSetup />
                   </AuthenticatedLayout>
                 } 
@@ -89,7 +96,7 @@ function App() {
               <Route 
                 path="/feedback/:id" 
                 element={
-                  <AuthenticatedLayout showBackButton={false}>
+                  <AuthenticatedLayout showBackButton={false} showBreadcrumb={false}>
                     <FeedbackAnalysis />
                   </AuthenticatedLayout>
                 } 

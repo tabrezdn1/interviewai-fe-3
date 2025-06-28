@@ -48,7 +48,7 @@ const Breadcrumb: React.FC = () => {
   }
 
   return (
-    <nav className="flex items-center space-x-1 text-sm text-gray-500 dark:text-slate-400 mb-6">
+    <nav className="flex items-center space-x-1 text-sm text-gray-500 dark:text-slate-400 mb-6 mt-6">
       {breadcrumbItems.map((item, index) => (
         <React.Fragment key={item.path}>
           {index > 0 && (

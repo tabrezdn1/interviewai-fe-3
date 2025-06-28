@@ -24,6 +24,7 @@ interface AuthContextType {
   ) => Promise<void>;
   signUp: (credentials: { email: string; password: string; name: string }) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (updates: Partial<UserProfile>) => void;
   isAuthenticated: boolean;
 }
 
@@ -34,6 +35,7 @@ export const AuthContext = createContext<AuthContextType>({
   login: async () => { },
   signUp: async () => { },
   logout: async () => { },
+  updateUser: () => { },
   isAuthenticated: false,
 });
 
@@ -286,12 +288,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const updateUser = (updates: Partial<UserProfile>): void => {
+    setUser(prevUser => {
+      if (!prevUser) return null;
+      return {
+        ...prevUser,
+        ...updates,
+      } as UserProfile;
+    });
+  };
+
   const value = {
     user,
     loading,
     login,
     signUp,
     logout,
+    updateUser,
     isAuthenticated: !!user,
   };
 
