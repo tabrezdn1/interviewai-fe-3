@@ -73,8 +73,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           async (event, session) => {
             console.log("Auth state change event:", event, "Has session:", !!session);
 
-            // Set loading to true for all auth state changes except TOKEN_REFRESHED
-            if (event !== 'TOKEN_REFRESHED' && authInitialized) {
+            // Only set loading to true for sign-in and sign-up events
+            // This prevents unnecessary loading states when just navigating between pages
+            const shouldShowLoading = ['SIGNED_IN', 'SIGNED_UP'].includes(event) && !session;
+            if (shouldShowLoading && authInitialized) {
               setLoading(true);
             }
 
