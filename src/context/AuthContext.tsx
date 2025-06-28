@@ -31,9 +31,9 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  login: async () => {},
-  signUp: async () => {},
-  logout: async () => {},
+  login: async () => { },
+  signUp: async () => { },
+  logout: async () => { },
   isAuthenticated: false,
 });
 
@@ -44,11 +44,11 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [authInitialized, setAuthInitialized] = useState(false);
 
   // Initialize user session on load
   useEffect(() => {
     const getUserSession = async () => {
+      setLoading(true);
       setLoading(true);
       try {
         console.log('🔑 AuthContext: Getting user session...');
@@ -65,8 +65,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
         }
         
-        // Mark auth as initialized
-        setAuthInitialized(true);
         console.log('🔑 AuthContext: Setting loading to false');
         setLoading(false);
         
@@ -80,8 +78,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               console.log('🔑 AuthContext: SIGNED_OUT event received, setting user to null');
             }
 
+            // Log specific SIGNED_OUT events for debugging
+            if (event === 'SIGNED_OUT') {
+              console.log('🔑 AuthContext: SIGNED_OUT event received, setting user to null');
+            }
+
             // Set loading to true for all auth state changes except TOKEN_REFRESHED
-            if (event !== 'TOKEN_REFRESHED' && authInitialized) {
+            if (event !== 'TOKEN_REFRESHED') {
               setLoading(true);
             }
 
@@ -105,7 +108,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.error('Error getting session:', error);
         console.log('🔑 AuthContext: Error in getUserSession, setting loading to false');
-        setAuthInitialized(true);
         setLoading(false);
       }
     };
@@ -273,6 +275,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async (): Promise<void> => {
     try {
       console.log('Logout initiated...');
+      setLoading(true);
+      
+      // First clear any tokens from localStorage
+      await clearAuthTokens();
+      
+      // Then call signOut
       setLoading(true);
       
       // First clear any tokens from localStorage
