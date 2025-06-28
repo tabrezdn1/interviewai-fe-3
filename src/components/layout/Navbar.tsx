@@ -85,7 +85,7 @@ const Navbar: React.FC = () => {
           >
             {/* Brand Logo */}
             <img
-              src="/interviewai-logo.png"
+              src="/public/interviewai-logo.png"
               alt="InterviewAI Logo"
               className="w-8 h-8 md:w-10 md:h-10 object-contain"
               style={{ display: 'block' }}
