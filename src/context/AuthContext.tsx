@@ -73,6 +73,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           async (event, session) => {
             console.log("Auth state change event:", event, "Has session:", !!session);
 
+            // Log specific SIGNED_OUT events for debugging
+            if (event === 'SIGNED_OUT') {
+              console.log('🔑 AuthContext: SIGNED_OUT event received, setting user to null');
+            }
+
             // Only set loading to true for sign-in and sign-up events
             // This prevents unnecessary loading states when just navigating between pages
             const shouldShowLoading = ['SIGNED_IN', 'SIGNED_UP'].includes(event) && !session;
@@ -83,7 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (session) {
               console.log('🔑 AuthContext: Auth state change with session, handling session');
               await handleSession(session);
-            } else {
+            } else if (event !== 'TOKEN_REFRESHED') {
               console.log('🔑 AuthContext: Auth state change without session, setting user to null');
               setUser(null);
             }
@@ -268,20 +273,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async (): Promise<void> => {
     try {
       console.log('Logout initiated...');
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error) {
+        console.error('Error in supabase.auth.signOut():', JSON.stringify(error, null, 2));
+        throw error;
+      }
       
       console.log('Supabase signOut successful');
       setUser(null);
       
       // Redirect to home page after logout
       console.log('Redirecting to home page...');
-      window.location.href = '/';
+      setTimeout(() => {
+        console.log('Executing redirect to home page');
+        window.location.href = '/';
+      }, 100);
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('Error logging out:', JSON.stringify(error, null, 2));
       // Even if there's an error, clear the user state and redirect
       setUser(null);
-      window.location.href = '/';
+      setTimeout(() => {
+        console.log('Executing redirect after error');
+        window.location.href = '/';
+      }, 100);
     }
   };
 
