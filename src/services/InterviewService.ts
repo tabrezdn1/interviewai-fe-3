@@ -47,136 +47,136 @@ export async function createInterview(userId: string, formData: InterviewFormDat
       throw new Error(`Insufficient conversation minutes. You have ${conversationMinutes.remaining} minutes remaining, but need ${formData.duration} minutes for this interview. Please upgrade your plan to continue.`);
     }
 
-  try {
-    // Validate required fields
-    if (!formData.interviewType || formData.interviewType.trim() === '') {
-      throw new Error('Interview type is required');
-    }
-    
-    if (!formData.role || formData.role.trim() === '') {
-      throw new Error('Job role is required');
-    }
-    
-    if (!formData.company || formData.company.trim() === '') {
-      throw new Error('Company is required');
-    }
-    
-    if (!formData.experience || formData.experience.trim() === '') {
-      throw new Error('Experience level is required');
-    }
-    
-    if (!formData.difficulty || formData.difficulty.trim() === '') {
-      throw new Error('Difficulty level is required');
-    }
+    try {
+      // Validate required fields
+      if (!formData.interviewType || formData.interviewType.trim() === '') {
+        throw new Error('Interview type is required');
+      }
+      
+      if (!formData.role || formData.role.trim() === '') {
+        throw new Error('Job role is required');
+      }
+      
+      if (!formData.company || formData.company.trim() === '') {
+        throw new Error('Company is required');
+      }
+      
+      if (!formData.experience || formData.experience.trim() === '') {
+        throw new Error('Experience level is required');
+      }
+      
+      if (!formData.difficulty || formData.difficulty.trim() === '') {
+        throw new Error('Difficulty level is required');
+      }
 
-    console.log('Creating interview with form data:', formData);
+      console.log('Creating interview with form data:', formData);
 
-    // Get the IDs for the selected types
-    const { data: interviewTypeData, error: typeError } = await supabase
-      .from('interview_types')
-      .select('id')
-      .eq('type', formData.interviewType)
-      .single();
-    
-    if (typeError) {
-      console.error('Error fetching interview type:', typeError);
-      throw new Error(`Interview type "${formData.interviewType}" not found in database`);
-    }
-    
-    const { data: experienceLevelData, error: expError } = await supabase
-      .from('experience_levels')
-      .select('id')
-      .eq('value', formData.experience)
-      .single();
-    
-    // Experience is optional
-    const experienceLevelId = expError ? null : experienceLevelData?.id;
-    
-    const { data: difficultyLevelData, error: diffError } = await supabase
-      .from('difficulty_levels')
-      .select('id')
-      .eq('value', formData.difficulty)
-      .single();
-    
-    if (diffError) {
-      console.error('Error fetching difficulty level:', diffError);
-      throw new Error(`Difficulty level "${formData.difficulty}" not found in database`);
-    }
-    
-    const interviewData = {
-      user_id: userId,
-      title: formData.interviewMode === 'complete' 
-        ? `Complete ${formData.role} Interview` 
-        : `${formData.role} ${formData.interviewType} Interview`,
-      company: formData.company || null,
-      role: formData.role,
-      interview_type_id: interviewTypeData.id,
-      experience_level_id: experienceLevelId,
-      difficulty_level_id: difficultyLevelData.id,
-      status: 'scheduled',
-      scheduled_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Set to 24 hours from now
-      duration: formData.duration,
-      prompt_status: 'pending' // Set initial prompt status to pending
-    };
-    
-    console.log('Inserting interview data:', interviewData);
-    
-    const { data: interview, error } = await supabase
-      .from('interviews')
-      .insert([interviewData])
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Error inserting interview:', error);
+      // Get the IDs for the selected types
+      const { data: interviewTypeData, error: typeError } = await supabase
+        .from('interview_types')
+        .select('id')
+        .eq('type', formData.interviewType)
+        .single();
+      
+      if (typeError) {
+        console.error('Error fetching interview type:', typeError);
+        throw new Error(`Interview type "${formData.interviewType}" not found in database`);
+      }
+      
+      const { data: experienceLevelData, error: expError } = await supabase
+        .from('experience_levels')
+        .select('id')
+        .eq('value', formData.experience)
+        .single();
+      
+      // Experience is optional
+      const experienceLevelId = expError ? null : experienceLevelData?.id;
+      
+      const { data: difficultyLevelData, error: diffError } = await supabase
+        .from('difficulty_levels')
+        .select('id')
+        .eq('value', formData.difficulty)
+        .single();
+      
+      if (diffError) {
+        console.error('Error fetching difficulty level:', diffError);
+        throw new Error(`Difficulty level "${formData.difficulty}" not found in database`);
+      }
+      
+      const interviewData = {
+        user_id: userId,
+        title: formData.interviewMode === 'complete' 
+          ? `Complete ${formData.role} Interview` 
+          : `${formData.role} ${formData.interviewType} Interview`,
+        company: formData.company || null,
+        role: formData.role,
+        interview_type_id: interviewTypeData.id,
+        experience_level_id: experienceLevelId,
+        difficulty_level_id: difficultyLevelData.id,
+        status: 'scheduled',
+        scheduled_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Set to 24 hours from now
+        duration: formData.duration,
+        prompt_status: 'pending' // Set initial prompt status to pending
+      };
+      
+      console.log('Inserting interview data:', interviewData);
+      
+      const { data: interview, error } = await supabase
+        .from('interviews')
+        .insert([interviewData])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error inserting interview:', error);
+        throw error;
+      }
+      
+      console.log('Successfully created interview:', interview);
+      
+      // Reserve the minutes for this interview
+      const minutesReserved = await updateConversationMinutes(userId, formData.duration);
+      if (!minutesReserved) {
+        console.warn('Failed to reserve conversation minutes, but interview was created');
+      }
+      
+     // Trigger prompt generation asynchronously
+     try {
+       // Get user profile to get the name
+       const { data: profile } = await supabase
+         .from('profiles')
+         .select('name')
+         .eq('id', userId)
+         .single();
+         
+       const userName = profile?.name || 'Candidate';
+       
+       // Call the RPC function to trigger prompt generation
+       const { error: rpcError } = await supabase.rpc('trigger_prompt_generation', {
+         p_interview_id: interview.id,
+         p_interview_type: formData.interviewType,
+         p_role: formData.role,
+         p_company: formData.company || '',
+         p_experience_level: formData.experience,
+         p_difficulty_level: formData.difficulty,
+         p_user_name: userName
+       });
+       
+       if (rpcError) {
+         console.error('Error triggering prompt generation:', rpcError);
+         // Don't throw error, just log it - the interview is still created
+       } else {
+         console.log('Prompt generation triggered successfully');
+       }
+     } catch (promptError) {
+       console.error('Error in prompt generation process:', promptError);
+       // Don't throw error, just log it - the interview is still created
+     }
+      return interview;
+    } catch (error) {
+      console.error('Error creating interview:', error);
       throw error;
     }
-    
-    console.log('Successfully created interview:', interview);
-    
-    // Reserve the minutes for this interview
-    const minutesReserved = await updateConversationMinutes(userId, formData.duration);
-    if (!minutesReserved) {
-      console.warn('Failed to reserve conversation minutes, but interview was created');
-    }
-    
-   // Trigger prompt generation asynchronously
-   try {
-     // Get user profile to get the name
-     const { data: profile } = await supabase
-       .from('profiles')
-       .select('name')
-       .eq('id', userId)
-       .single();
-       
-     const userName = profile?.name || 'Candidate';
-     
-     // Call the RPC function to trigger prompt generation
-     const { error: rpcError } = await supabase.rpc('trigger_prompt_generation', {
-       p_interview_id: interview.id,
-       p_interview_type: formData.interviewType,
-       p_role: formData.role,
-       p_company: formData.company || '',
-       p_experience_level: formData.experience,
-       p_difficulty_level: formData.difficulty,
-       p_user_name: userName
-     });
-     
-     if (rpcError) {
-       console.error('Error triggering prompt generation:', rpcError);
-       // Don't throw error, just log it - the interview is still created
-     } else {
-       console.log('Prompt generation triggered successfully');
-     }
-   } catch (promptError) {
-     console.error('Error in prompt generation process:', promptError);
-     // Don't throw error, just log it - the interview is still created
-   }
-    return interview;
-  } catch (error) {
-    console.error('Error creating interview:', error);
-    throw error;
-  }
   } catch (error) {
     console.error('Error in createInterview:', error);
     throw error;
@@ -320,9 +320,6 @@ export async function getInterview(id: string) {
 export async function startFeedbackProcessing(interviewId: string, tavusConversationId: string, interviewDetails?: any) {
   try {
     // Check if Supabase is configured before making requests
-    if (isSupabaseConfigured()) {
-    // Also update the main status to 'completed' and set completed_at timestamp
-    // This ensures the interview immediately moves from "Upcoming" to "Completed" section
     if (isSupabaseConfigured()) {
       const { error: updateError } = await supabase
         .from('interviews')
