@@ -15,6 +15,7 @@ import InterviewCall from '../components/interview/InterviewCall';
 import BackButton from '../components/layout/BackButton';
 import Breadcrumb from '../components/layout/Breadcrumb';
 import { useTavusConversation } from '../hooks/useTavusConversation';
+import { supabase } from '../lib/supabase';
 
 interface Question {
   id: number;
