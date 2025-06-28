@@ -9,7 +9,6 @@ import { getProfileSettings, updateProfileSettings } from '../services/ProfileSe
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import BackButton from '../components/layout/BackButton';
 import Breadcrumb from '../components/layout/Breadcrumb';
 
 const Settings: React.FC = () => {
@@ -169,7 +168,6 @@ const Settings: React.FC = () => {
           transition={{ duration: 0.3 }}
           className="mb-8"
         >
-          <BackButton className="mb-4" />
           <h1 className="text-3xl font-bold mb-2">Settings</h1>
           <p className="text-gray-600">
             Manage your account settings and preferences

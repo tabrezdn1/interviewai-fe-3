@@ -3,20 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Code, Briefcase, User, Clock, Check, ChevronRight, ChevronLeft, 
-  MessageSquare, Users, Phone, Plus, Lightbulb, 
-  CheckCircle, ArrowRight, Smartphone, Laptop, Building, Sparkles,
+  MessageSquare, Phone, Lightbulb, 
+  CheckCircle, Smartphone, Laptop, Building, Sparkles,
   Calendar, CalendarDays, Save, Shield, Award
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
 import { interviewTips } from '../data/feedback';
 import { useAuth } from '../hooks/useAuth';
 import { fetchInterviewTypes, fetchExperienceLevels, fetchDifficultyLevels } from '../lib/utils';
 import { createInterview } from '../services/InterviewService';
-import { getInterviewRounds } from '../lib/tavus';
 import Breadcrumb from '../components/layout/Breadcrumb';
-import BackButton from '../components/layout/BackButton';
 
 interface InterviewType {
   id?: number;
@@ -245,12 +242,10 @@ const InterviewSetup: React.FC = () => {
   }
   
   return (
-    <div className="min-h-screen pt-24 pb-12 relative overflow-hidden">
+    <div className="min-h-screen pt-20 pb-8 relative overflow-hidden">
       {/* Full-screen fixed gradient background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Light theme: soft blue/purple gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />
-        {/* Dark theme: pure black background only */}
         <div className="absolute inset-0 hidden dark:block bg-black" />
       </div>
       {/* Subtle animated bubbles */}
@@ -280,7 +275,7 @@ const InterviewSetup: React.FC = () => {
           />
         ))}
       </div>
-      <div className="container-custom mx-auto relative z-10">
+      <div className="container-custom mx-auto relative z-10 px-2 sm:px-4">
         <div className="hidden md:block">
           <Breadcrumb />
         </div>
@@ -288,41 +283,41 @@ const InterviewSetup: React.FC = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="mb-6"
+          className="mb-4 sm:mb-6"
         >
-          <BackButton className="mb-4" />
-          <h1 className="text-3xl font-bold mb-2">Setup Interview</h1>
-          <p className="text-slate-600 dark:text-slate-300">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Setup Interview</h1>
+          <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300">
             Configure your AI interview session based on your needs
           </p>
         </motion.div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          <div className="lg:col-span-2">
+        {/* Responsive main layout: column on mobile, row on desktop */}
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          {/* Main content */}
+          <div className="w-full lg:flex-1">
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
             >
-              <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl">
-                <CardContent className="p-6 md:p-8">
+              <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl flex flex-col justify-start">
+                <CardContent className="p-3 sm:p-6 md:p-8 flex-1 flex flex-col">
                   {/* Progress indicator */}
-                  <div className="mb-10">
+                  <div className="mb-8 sm:mb-10">
                     <div className="relative">
                       <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2"></div>
-                      <div className="flex items-center justify-between relative">
+                      <div className="flex flex-row items-center justify-between relative gap-2 sm:gap-0 overflow-x-auto no-scrollbar">
                         {[1, 2, 3, 4].map((stepNumber) => (
-                          <div key={stepNumber} className="flex flex-col items-center">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          <div key={stepNumber} className="flex flex-col items-center flex-1 min-w-[60px]">
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-base sm:text-lg font-semibold ${
                               step > stepNumber 
                                 ? 'bg-blue-600 text-white shadow-md shadow-blue-300 dark:bg-blue-500 dark:shadow-blue-700' 
                                 : step === stepNumber 
                                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-300 ring-4 ring-blue-200 dark:bg-blue-500 dark:shadow-blue-700 dark:ring-blue-900' 
                                   : 'bg-gray-200 text-gray-600 dark:bg-slate-800 dark:text-slate-400'
-                            } z-10 transition-all duration-300`}>
+                            } z-10 transition-all duration-300 flex items-center justify-center`} style={{lineHeight: 1}}>
                               {step > stepNumber ? <Check className="h-5 w-5" /> : stepNumber}
                             </div>
-                            <span className={`mt-3 text-sm font-medium ${
+                            <span className={`mt-3 sm:mt-4 text-xs sm:text-sm font-medium text-center w-full ${
                               step === stepNumber ? 'text-primary-700' : 'text-gray-600'
                             }`}>
                               {stepNumber === 1 && "Interview Type"}
@@ -338,7 +333,6 @@ const InterviewSetup: React.FC = () => {
                       ></div>
                     </div>
                   </div>
-                  
                   {/* Step 1: Interview Type */}
                   {step === 1 && (
                     <motion.div
@@ -347,9 +341,8 @@ const InterviewSetup: React.FC = () => {
                       exit={{ opacity: 0, y: 10 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <h2 className="text-2xl font-semibold mb-8 text-center">Select Interview Type</h2>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                      <h2 className="text-xl sm:text-2xl font-semibold mb-6 sm:mb-8 text-center">Select Interview Type</h2>
+                      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
                         {interviewTypes.map((type) => (
                           <InterviewTypeCard
                             key={type.type}
@@ -470,7 +463,7 @@ const InterviewSetup: React.FC = () => {
                       exit={{ opacity: 0, y: 10 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <h2 className="text-2xl font-semibold mb-8 text-center">Schedule & Settings</h2>
+                      <h2 className="text-2xl font-semibold mb-8 text-center">Schedule</h2>
                       
                       <div className="space-y-6">
                         {/* Schedule Section */}
@@ -684,26 +677,25 @@ const InterviewSetup: React.FC = () => {
                     </motion.div>
                   )}
                   
-                  {/* Navigation buttons */}
-                  <div className="mt-10 flex justify-between">
+                  {/* Navigation buttons: full width on mobile, inline on desktop */}
+                  <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row sm:justify-between gap-3">
                     {step > 1 ? (
                       <Button
                         onClick={handleBack}
                         variant="outline"
-                        className="flex items-center gap-2 px-5 py-2.5"
+                        className="flex items-center gap-2 px-5 py-2.5 w-full sm:w-auto"
                       >
                         <ChevronLeft className="h-4 w-4" />
                         Back
                       </Button>
                     ) : (
-                      <div></div>
+                      <div className="w-full sm:w-auto"></div>
                     )}
-                    
                     {step < 4 ? (
                       <Button
                         onClick={handleNext}
                         disabled={!isStepValid()}
-                        className={`flex items-center gap-2 px-5 py-2.5 ${
+                        className={`flex items-center gap-2 px-5 py-2.5 w-full sm:w-auto ${
                           !isStepValid() ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         variant="interview"
@@ -712,12 +704,12 @@ const InterviewSetup: React.FC = () => {
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     ) : (
-                      <div className="flex gap-3">
+                      <div className="flex gap-3 w-full sm:w-auto">
                         <Button
                           onClick={handleSaveAndSchedule}
                           disabled={!isStepValid() || saving} 
                           variant="outline"
-                          className={`flex items-center gap-2 px-5 py-2.5 ${
+                          className={`flex items-center gap-2 px-5 py-2.5 w-full sm:w-auto ${
                             !isStepValid() || saving ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                         >
@@ -734,18 +726,18 @@ const InterviewSetup: React.FC = () => {
               </Card>
             </motion.div>
           </div>
-          
-          <div className="lg:col-span-1">
+          {/* Tips sidebar: below on mobile, right on desktop */}
+          <div className="w-full lg:w-96 flex-shrink-0 mt-10 lg:mt-0">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }} 
               transition={{ duration: 0.3, delay: 0.2 }}
             >
-              <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+              <h3 className="text-lg font-semibold mb-4 sm:mb-6 flex items-center gap-2">
                 <Lightbulb className="h-5 w-5 text-amber-500" />
                 <span>Tips for Success</span>
               </h3>
-              <ul className="space-y-4">
+              <ul className="space-y-3 sm:space-y-4">
                 {interviewTips.slice(0, 4).map((tip, index) => (
                   <li key={index} className="flex gap-3 p-3 rounded-lg bg-slate-50 border border-gray-100 dark:bg-slate-800/80 dark:border-slate-700">
                     <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
@@ -756,8 +748,8 @@ const InterviewSetup: React.FC = () => {
                   </li>
                 ))}
               </ul>
-              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
-                <div className="flex items-center gap-3 mb-4 bg-blue-50 p-3 rounded-lg dark:bg-blue-900/40">
+              <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200 dark:border-slate-700">
+                <div className="flex items-center gap-3 mb-3 sm:mb-4 bg-blue-50 p-3 rounded-lg dark:bg-blue-900/40">
                   <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center dark:bg-blue-900">
                     <Clock className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                   </div>
@@ -768,7 +760,7 @@ const InterviewSetup: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mt-4 dark:text-slate-300">
+                <p className="text-sm text-gray-600 mt-2 sm:mt-4 dark:text-slate-300">
                   You can adjust the duration based on your availability and the complexity of the role you're preparing for.
                 </p>
               </div>

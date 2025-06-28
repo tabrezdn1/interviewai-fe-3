@@ -61,9 +61,10 @@ const Login: React.FC = () => {
     try {
       await login('email', data);
       navigate('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sign in failed:', error);
-      setError(error.message || 'Authentication failed. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -75,16 +76,17 @@ const Login: React.FC = () => {
     try {
       await signUp(data);
       navigate('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sign up failed:', error);
       
       // Handle specific error cases
-      if (error.code === 'user_already_exists' || error.message?.includes('User already registered')) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'user_already_exists') {
         setError('This email is already registered. Please sign in instead.');
         // Automatically switch to sign-in mode to help the user
         setIsSignUp(false);
       } else {
-        setError(error.error_description || error.message || 'Registration failed. Please try again.');
+        const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
+        setError(errorMessage);
       }
     } finally {
       setIsSubmitting(false);
@@ -108,10 +110,10 @@ const Login: React.FC = () => {
   }
   
   return (
-    <div className="min-h-screen pt-24 flex items-center justify-center px-4 relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen pt-16 sm:pt-20 lg:pt-24 flex items-center justify-center px-4 sm:px-6 relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       {/* Glassmorphism blurred layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[60vh] rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl shadow-2xl" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] sm:w-[80vw] h-[70vh] sm:h-[60vh] rounded-2xl sm:rounded-3xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl shadow-2xl" />
         {/* Subtle animated bubbles */}
         {Array.from({ length: 8 }).map((_, i) => (
           <motion.div
@@ -142,26 +144,26 @@ const Login: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md z-10"
+        className="w-full max-w-sm sm:max-w-md z-10"
       >
         <Card className="border border-white/40 dark:border-slate-700/60 shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
-          <CardHeader className="text-center space-y-1">
+          <CardHeader className="text-center space-y-1 p-6 sm:p-8">
             <div className="flex justify-center mb-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="h-6 w-6 text-primary" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">
+            <CardTitle className="text-xl sm:text-2xl font-bold">
               {isSignUp ? 'Create your account' : 'Welcome back'}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm sm:text-base">
               {isSignUp 
                 ? 'Sign up to start practicing interviews with AI' 
                 : 'Sign in to continue your interview practice'}
             </CardDescription>
           </CardHeader>
           
-          <CardContent>
+          <CardContent className="p-6 sm:p-8">
             {error && (
               <div className="mb-4 p-3 bg-destructive/10 text-destructive text-sm rounded-lg border border-destructive/20">
                 {error}
@@ -169,14 +171,14 @@ const Login: React.FC = () => {
             )}
             
             {formMode === 'oauth' ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <Button
                   onClick={() => handleOAuthLogin('google')}
                   variant="outline"
-                  className="w-full justify-center gap-3 hover:bg-blue-700 dark:hover:bg-blue-600"
+                  className="w-full justify-center gap-3 hover:bg-blue-700 dark:hover:bg-blue-600 h-11 sm:h-12"
                   disabled={isSubmitting}
                 >
-                  <svg className="h-5 w-5" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24">
                     <path
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                       fill="#4285F4"
@@ -194,66 +196,101 @@ const Login: React.FC = () => {
                       fill="#EA4335"
                     />
                   </svg>
-                  {isSubmitting ? 'Connecting...' : 'Continue with Google'}
+                  <span className="text-sm sm:text-base">
+                    {isSubmitting ? 'Connecting...' : 'Continue with Google'}
+                  </span>
                 </Button>
                 
                 <Button
                   onClick={() => handleOAuthLogin('github')}
                   variant="outline"
-                  className="w-full justify-center gap-3 bg-gray-900 text-white border-gray-900 hover:bg-blue-700 dark:hover:bg-blue-600"
+                  className="w-full justify-center gap-3 hover:bg-slate-700 dark:hover:bg-slate-600 h-11 sm:h-12"
                   disabled={isSubmitting}
                 >
-                  <Github className="h-5 w-5" />
-                  {isSubmitting ? 'Connecting...' : 'Continue with GitHub'}
+                  <Github className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="text-sm sm:text-base">
+                    {isSubmitting ? 'Connecting...' : 'Continue with GitHub'}
+                  </span>
                 </Button>
                 
-                <div className="relative py-3">
+                <div className="relative my-4 sm:my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border"></div>
+                    <span className="w-full border-t border-gray-300 dark:border-gray-600" />
                   </div>
-                  <div className="relative flex justify-center">
-                    <span className="bg-card px-4 text-sm text-muted-foreground">Or continue with</span>
+                  <div className="relative flex justify-center text-xs sm:text-sm uppercase">
+                    <span className="bg-white dark:bg-slate-900 px-2 text-gray-500 dark:text-gray-400">
+                      Or continue with
+                    </span>
                   </div>
                 </div>
                 
                 <Button
                   onClick={() => setFormMode('email')}
                   variant="outline"
-                  className="w-full justify-center gap-3 hover:bg-blue-700 dark:hover:bg-blue-600"
+                  className="w-full justify-center gap-3 h-11 sm:h-12"
                 >
-                  <Mail className="h-5 w-5" />
-                  Continue with Email
+                  <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="text-sm sm:text-base">Continue with Email</span>
                 </Button>
               </div>
             ) : (
-              <>
+              <div className="space-y-4">
                 {isSignUp ? (
                   <EmailSignUpForm 
-                    onSubmit={handleEmailSignUp}
+                    onSubmit={handleEmailSignUp} 
                     isLoading={isSubmitting}
                     onCancel={() => setFormMode('oauth')}
                   />
                 ) : (
                   <EmailSignInForm 
-                    onSubmit={handleEmailSignIn}
+                    onSubmit={handleEmailSignIn} 
                     isLoading={isSubmitting}
                     onCancel={() => setFormMode('oauth')}
                   />
                 )}
-              </>
+                
+                <div className="relative my-4 sm:my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-gray-300 dark:border-gray-600" />
+                  </div>
+                  <div className="relative flex justify-center text-xs sm:text-sm uppercase">
+                    <span className="bg-white dark:bg-slate-900 px-2 text-gray-500 dark:text-gray-400">
+                      Or
+                    </span>
+                  </div>
+                </div>
+                
+                <Button
+                  onClick={() => setFormMode('oauth')}
+                  variant="outline"
+                  className="w-full justify-center gap-3 h-11 sm:h-12"
+                >
+                  <span className="text-sm sm:text-base">Continue with OAuth</span>
+                </Button>
+              </div>
             )}
           </CardContent>
           
-          <CardFooter className="flex flex-col">
-            <p className="text-center text-sm text-muted-foreground">
+          <CardFooter className="flex flex-col space-y-2 p-6 sm:p-8 pt-0">
+            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
               {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
               <button
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-primary font-medium hover:text-primary/90"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError(null);
+                }}
+                className="text-primary hover:underline font-medium"
               >
                 {isSignUp ? 'Sign in' : 'Sign up'}
               </button>
-            </p>
+            </div>
+            
+            <div className="text-center text-xs text-gray-500 dark:text-gray-500">
+              By continuing, you agree to our{' '}
+              <a href="#" className="text-primary hover:underline">Terms of Service</a>
+              {' '}and{' '}
+              <a href="#" className="text-primary hover:underline">Privacy Policy</a>
+            </div>
           </CardFooter>
         </Card>
       </motion.div>

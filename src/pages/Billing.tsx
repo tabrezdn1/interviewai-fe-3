@@ -14,7 +14,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import BackButton from '../components/layout/BackButton';
 import Breadcrumb from '../components/layout/Breadcrumb';
 
 const Billing: React.FC = () => {
@@ -200,7 +199,6 @@ const Billing: React.FC = () => {
           transition={{ duration: 0.3 }}
           className="mb-8"
         >
-          <BackButton className="mb-4" />
           <h1 className="text-3xl font-bold mb-2">Billing & Subscription</h1>
           <p className="text-gray-600">
             Manage your subscription and billing history

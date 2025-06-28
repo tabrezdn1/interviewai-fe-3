@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { 
-  Check, Shield, Loader2,
-  ArrowRight, CreditCard, Calendar, Users 
+  Check, Loader2, ArrowRight, CreditCard 
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -12,7 +10,6 @@ import { cn } from '../lib/utils.tsx';
 import { useAuth } from '../hooks/useAuth';
 import { stripeService, PRICING_PLANS } from '../services/StripeService';
 import { getPlanIconComponent } from '../lib/utils.tsx';
-import BackButton from '../components/layout/BackButton';
 import Breadcrumb from '../components/layout/Breadcrumb';
 
 const Pricing: React.FC = () => {
@@ -37,10 +34,6 @@ const Pricing: React.FC = () => {
     {
       question: 'What types of interviews can I practice?',
       answer: 'You can practice technical interviews, behavioral interviews, case studies, and industry-specific scenarios across various fields including tech, finance, consulting, and more.'
-    },
-    {
-      question: 'Is my data secure?',
-      answer: 'Yes, we take data security seriously. All interview sessions are encrypted, and we never share your personal information with third parties.'
     }
   ];
 
@@ -104,24 +97,21 @@ const Pricing: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black pt-24 pb-12">
-      <div className="container-custom mx-auto">
+      <div className="container-custom mx-auto px-2 sm:px-4">
         <Breadcrumb />
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="text-center mb-12"
+          className="text-center mb-8 sm:mb-12"
         >
-          <div className="flex justify-center mb-4">
-            <BackButton />
-          </div>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-100 text-primary-800 text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-100 text-primary-800 text-sm font-medium mb-4 dark:bg-slate-800 dark:text-blue-200">
             <CreditCard className="h-4 w-4" />
             <span>Pricing Plans</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Choose Your Plan</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Choose Your Plan</h1>
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
             Get started with our AI-powered interview practice. All plans include personalized feedback and performance analytics.
           </p>
         </motion.div>
@@ -131,17 +121,17 @@ const Pricing: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex justify-center mb-12"
+          className="flex flex-col items-center justify-center mb-8 sm:mb-12"
         >
-          <div className="bg-gray-100 p-1 rounded-xl inline-flex relative shadow-inner">
-            <div className="flex relative z-10">
+          <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-xl inline-flex relative shadow-inner w-full max-w-xs">
+            <div className="flex relative z-10 w-full">
               <button 
                 onClick={() => setIsAnnual(false)}
                 className={cn(
-                  "px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 relative z-10",
+                  "flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold text-sm transition-all duration-300 relative z-10",
                   !isAnnual 
-                    ? "text-white" 
-                    : "text-gray-600 hover:text-gray-800"
+                    ? "text-white dark:text-white" 
+                    : "text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-white"
                 )}
               >
                 Monthly
@@ -149,19 +139,19 @@ const Pricing: React.FC = () => {
               <button 
                 onClick={() => setIsAnnual(true)}
                 className={cn(
-                  "px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 relative z-10",
+                  "flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold text-sm transition-all duration-300 relative z-10",
                   isAnnual 
-                    ? "text-white" 
-                    : "text-gray-600 hover:text-gray-800"
+                    ? "text-white dark:text-white" 
+                    : "text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-white"
                 )}
               >
-                Annual <span className="text-green-700 text-xs ml-1">20%</span>
+                Annual <span className="text-green-700 dark:text-green-300 text-xs ml-1">20%</span>
               </button>
               
               {/* Sliding background */}
               <div 
                 className={cn(
-                  "absolute top-1 bottom-1 bg-gradient-to-r from-primary to-accent rounded-lg shadow-lg transition-all duration-300 ease-out",
+                  "absolute top-1 bottom-1 bg-gradient-to-r from-primary to-accent dark:from-blue-700 dark:to-purple-700 rounded-lg shadow-lg transition-all duration-300 ease-out",
                   isAnnual ? "left-[50%] right-1" : "left-1 right-[50%]"
                 )}
               />
@@ -170,16 +160,23 @@ const Pricing: React.FC = () => {
         </motion.div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16">
           {Object.values(PRICING_PLANS).map((plan, index) => (
             <motion.div
               key={plan.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className={`relative ${plan.popular ? 'scale-105' : ''}`}
+              className={cn(
+                "relative h-full flex flex-col",
+                plan.popular ? 'scale-105' : ''
+              )}
             >
-              <Card className={`h-full ${plan.popular ? 'border-primary-500 shadow-xl' : 'border-gray-200 dark:border-slate-700'} bg-white dark:bg-slate-900/90`}>
+              <Card className={cn(
+                "flex flex-col h-full",
+                plan.popular ? 'border-primary-500 shadow-xl' : 'border-gray-200 dark:border-slate-700',
+                'bg-white dark:bg-slate-900/90'
+              )}>
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-primary text-white px-4 py-1">
@@ -189,8 +186,11 @@ const Pricing: React.FC = () => {
                 )}
                 
                 <CardHeader className="text-center pb-4">
-                  <div className={`w-12 h-12 mx-auto mb-4 rounded-lg bg-${plan.color}-100 dark:bg-${plan.color}-900 flex items-center justify-center`}>
-                    <div className={`text-${plan.color}-600 dark:text-${plan.color}-300`}>
+                  <div className={cn(
+                    "w-12 h-12 mx-auto mb-4 rounded-lg flex items-center justify-center",
+                    `bg-${plan.color}-100 dark:bg-${plan.color}-900`
+                  )}>
+                    <div className={cn(`text-${plan.color}-600 dark:text-${plan.color}-300`)}>
                       {getPlanIconComponent(plan.icon)}
                     </div>
                   </div>
@@ -222,7 +222,7 @@ const Pricing: React.FC = () => {
                   </div>
                 </CardHeader>
                 
-                <CardContent className="pt-0">
+                <CardContent className="pt-0 flex-1 flex flex-col justify-between">
                   <ul className="space-y-3 mb-6">
                     {stripeService.getPlanFeatures(plan.id, isAnnual ? 'yearly' : 'monthly').map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start gap-3">
@@ -234,7 +234,10 @@ const Pricing: React.FC = () => {
                   
                   <Button 
                     asChild 
-                    className={`w-full ${plan.popular ? 'bg-primary hover:bg-primary/90' : ''}`}
+                    className={cn(
+                      "w-full mt-auto",
+                      plan.popular ? 'bg-primary hover:bg-primary/90' : ''
+                    )}
                     variant={plan.popular ? 'default' : 'outline'} 
                     onClick={(e) => {
                       e.preventDefault();
@@ -267,7 +270,7 @@ const Pricing: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="mb-16"
+          className="mb-12 sm:mb-16"
         >
           <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
             <CardHeader className="text-center">
@@ -277,8 +280,8 @@ const Pricing: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full min-w-[600px] text-sm sm:text-base">
                   <thead>
                     <tr className="border-b dark:border-slate-700">
                       <th className="text-left py-3 px-4 dark:text-slate-200">Features</th>
@@ -320,20 +323,20 @@ const Pricing: React.FC = () => {
         </motion.div>
 
         {/* FAQ Section */}
-        <div className="mb-16">
+        <div className="mb-12 sm:mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <div className="text-center mb-12">
+            <div className="text-center mb-8 sm:mb-12">
               <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
               <p className="text-gray-600">
                 Everything you need to know about our pricing and features
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
               {faqs.map((faq, index) => (
                 <Card key={index} className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
                   <CardContent className="p-6">
