@@ -14,7 +14,6 @@ import Pricing from './pages/Pricing';
 import Billing from './pages/Billing';
 
 import AuthProvider from './context/AuthContext';
-import ProtectedRoute from './components/auth/ProtectedRoute';
 import AuthenticatedLayout from './components/layout/AuthenticatedLayout';
 
 function App() {
@@ -50,7 +49,7 @@ function App() {
               <Route 
                 path="/settings" 
                 element={
-                  <AuthenticatedLayout>
+                  <AuthenticatedLayout showBackButton={false}>
                     <Settings />
                   </AuthenticatedLayout>
                 } 
@@ -59,7 +58,7 @@ function App() {
               <Route 
                 path="/billing" 
                 element={
-                  <AuthenticatedLayout>
+                  <AuthenticatedLayout showBackButton={false}>
                     <Billing />
                   </AuthenticatedLayout>
                 } 
@@ -75,7 +74,7 @@ function App() {
               <Route 
                 path="/setup" 
                 element={
-                  <AuthenticatedLayout>
+                  <AuthenticatedLayout showBackButton={false}>
                     <InterviewSetup />
                   </AuthenticatedLayout>
                 } 
@@ -83,7 +82,7 @@ function App() {
               <Route 
                 path="/interview/:id" 
                 element={
-                  <AuthenticatedLayout showBackButton={false} showBreadcrumb={false}>
+                  <AuthenticatedLayout showBackButton={false} showBreadcrumb={false} fullScreen={true}>
                     <InterviewSession />
                   </AuthenticatedLayout>
                 } 
@@ -91,7 +90,7 @@ function App() {
               <Route 
                 path="/feedback/:id" 
                 element={
-                  <AuthenticatedLayout>
+                  <AuthenticatedLayout showBackButton={false}>
                     <FeedbackAnalysis />
                   </AuthenticatedLayout>
                 } 

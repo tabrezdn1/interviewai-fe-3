@@ -9,18 +9,20 @@ interface AuthenticatedLayoutProps {
   children: React.ReactNode;
   showBackButton?: boolean;
   showBreadcrumb?: boolean;
+  fullScreen?: boolean;
 }
 
 const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ 
   children, 
   showBackButton = true,
-  showBreadcrumb = true
+  showBreadcrumb = true,
+  fullScreen = false
 }) => {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-background text-foreground font-sans">
         <Navbar />
-        <div className="pt-14 sm:pt-16 lg:pt-20 pb-8 sm:pb-12 relative overflow-hidden">
+        <div className={`${fullScreen ? 'pt-0 pb-0' : 'pt-12 sm:pt-14 lg:pt-16 pb-4 sm:pb-6 lg:pb-8'} relative overflow-hidden`}>
           {/* Full-screen fixed gradient background */}
           <div className="fixed inset-0 z-0 pointer-events-none">
             {/* Light theme: soft blue/purple gradient */}
@@ -55,7 +57,7 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({
               />
             ))}
           </div>
-          <div className="container-custom mx-auto relative z-10">
+          <div className={`${fullScreen ? '' : 'container-custom mx-auto px-4 sm:px-6 lg:px-8'} relative z-10`}>
             {showBreadcrumb && <Breadcrumb />}
             {showBackButton && <BackButton className="mb-4" />}
             {children}

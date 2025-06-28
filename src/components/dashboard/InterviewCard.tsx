@@ -58,17 +58,6 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
   const hasPromptError = interview.prompt_status === 'failed';
   const hasFeedbackError = interview.feedback_processing_status === 'failed';
   
-  // Debug log for interview status
-  console.log(`🔍 InterviewCard: Rendering card for interview ${interview.id}`, {
-    status: interview.status,
-    promptStatus: interview.prompt_status,
-    feedbackStatus: interview.feedback_processing_status,
-    isUpcoming,
-    isCompleted,
-    hasPromptError,
-    hasFeedbackError
-  });
-  
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}

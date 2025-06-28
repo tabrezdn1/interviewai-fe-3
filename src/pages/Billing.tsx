@@ -190,7 +190,7 @@ const Billing: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black pt-24 pb-12 relative overflow-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-black relative overflow-hidden">
       <div className="container-custom mx-auto">
         <Breadcrumb />
         <motion.div

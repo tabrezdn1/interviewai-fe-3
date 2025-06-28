@@ -3,6 +3,7 @@ import { fetchUserInterviews, fetchInterviewQuestions, fetchInterviewFeedback } 
 import { getConversationMinutes, updateConversationMinutes } from './ProfileService';
 import { mockQuestions } from '../data/questions';
 import { mockFeedback } from '../data/feedback';
+import { deletePersona } from '../lib/tavus';
 
 export interface InterviewFormData {
   interviewType: string;
@@ -283,7 +284,7 @@ export async function getInterview(id: string) {
       ...data,
       questions: questions.length 
         ? questions.map((q) => q.questions) 
-        : mockQuestions[data.interview_types.type] || mockQuestions.technical
+        : mockQuestions[data.interview_types.type as keyof typeof mockQuestions] || mockQuestions.technical
     };
   } catch (error) {
     console.error('Error fetching interview:', error);
@@ -324,24 +325,16 @@ export async function startFeedbackProcessing(interviewId: string, tavusConversa
     
     // Check if Supabase is configured before making requests
     if (isSupabaseConfigured()) {
-      console.log('🔄 InterviewService.startFeedbackProcessing: Updating interview status to completed and processing feedback');
-      
-      // First, update the interview status to completed
+      // Update interview status to processing
       const { error: updateError } = await supabase
         .from('interviews')
         .update({
-          status: 'completed', // Mark as completed immediately
-          completed_at: new Date().toISOString(), // Set completion timestamp
           feedback_processing_status: 'processing'
         })
         .eq('id', interviewId);
-      
+
       if (updateError) {
-        console.error('Error updating interview status to processing:', updateError);
-         console.log('🔄 InterviewService.startFeedbackProcessing: Failed to update interview status', updateError);
-         return false;
-      } else {
-        console.log('🔄 InterviewService.startFeedbackProcessing: Successfully updated interview status');
+        console.error('Error updating interview feedback status:', updateError);
       }
     }
 

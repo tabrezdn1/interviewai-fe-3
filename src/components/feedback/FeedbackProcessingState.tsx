@@ -8,12 +8,10 @@ import { Card, CardContent } from '../ui/card';
 
 interface FeedbackProcessingStateProps {
   title?: string;
-  onReturnToDashboard: () => void;
 }
 
 const FeedbackProcessingState: React.FC<FeedbackProcessingStateProps> = ({ 
-  title = 'Your interview',
-  onReturnToDashboard
+  title = 'Your interview'
 }) => {
   return (
     <Card className="border-0 shadow-md overflow-hidden">
@@ -87,12 +85,6 @@ const FeedbackProcessingState: React.FC<FeedbackProcessingStateProps> = ({
               </div>
             </li>
           </ul>
-        </div>
-        
-        <div className="flex justify-center mt-8">
-          <Button variant="outline" onClick={onReturnToDashboard}>
-            Return to Dashboard
-          </Button>
         </div>
       </CardContent>
     </Card>

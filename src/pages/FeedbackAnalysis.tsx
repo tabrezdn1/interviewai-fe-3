@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
-  ThumbsUp, ThumbsDown, Award, Loader2, BarChart2, Clock, MessageSquare, User, Star, Building, Briefcase
+  ThumbsUp, ThumbsDown, Award, Loader2, BarChart2, Clock, MessageSquare, User, Star, Building, Briefcase, AlertCircle
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
@@ -72,6 +72,7 @@ const FeedbackAnalysis: React.FC = () => {
   const [interviewStatus, setInterviewStatus] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState(false);
   const [retryingFeedback, setRetryingFeedback] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     loadFeedback();
@@ -129,6 +130,7 @@ const FeedbackAnalysis: React.FC = () => {
         }
       } catch (error) {
         console.error('Error loading feedback:', error);
+        setError(error instanceof Error ? error.message : 'An unexpected error occurred');
       } finally {
         // Simulate a minimum loading time for better UX
         if (interviewStatus !== 'processing' && interviewStatus !== 'pending') {
@@ -250,7 +252,7 @@ const FeedbackAnalysis: React.FC = () => {
   // Show loading state
   if (loading && !feedbackData) {
     return (
-      <div className="min-h-screen relative overflow-hidden pt-24 pb-12">
+      <div className="min-h-screen relative overflow-hidden">
         {/* Background gradient for light theme, pure black for dark */}
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />
@@ -266,24 +268,63 @@ const FeedbackAnalysis: React.FC = () => {
           >
             <h1 className="text-3xl font-bold mb-2">Interview Feedback</h1>
             <p className="text-gray-600">
-              Your interview feedback is being generated
+              Loading your feedback...
             </p>
           </motion.div>
           
           <div className="flex flex-col items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600 mb-8"></div>
-            <h2 className="text-2xl font-semibold mb-4">Analyzing Your Interview</h2>
-            <p className="text-gray-600 text-center max-w-md">
-              We're generating comprehensive feedback based on your interview performance. 
-              This may take a few minutes.
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <h2 className="text-2xl font-semibold mb-2">Generating Feedback</h2>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                Our AI is analyzing your interview responses and preparing detailed feedback.
+                This may take a few minutes.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Background gradient for light theme, pure black for dark */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />
+          <div className="absolute inset-0 hidden dark:block bg-black" />
+        </div>
+        <div className="container-custom mx-auto relative z-10">
+          <Breadcrumb />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mb-8"
+          >
+            <h1 className="text-3xl font-bold mb-2">Interview Feedback</h1>
+            <p className="text-gray-600">
+              {feedbackData?.title} • {new Date(feedbackData?.date).toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric',
+                year: 'numeric'
+              })}
+              {feedbackData?.company && ` • ${feedbackData.company}`}
+              {feedbackData?.role && ` • ${feedbackData.role}`}
             </p>
-            <Button 
-              variant="outline" 
-              className="mt-8"
-              onClick={() => window.location.href = '/dashboard'}
-            >
-              Return to Dashboard
-            </Button>
+          </motion.div>
+          
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="text-center">
+              <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-semibold mb-2">Error Loading Feedback</h2>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                {error || 'An unexpected error occurred while loading your feedback. Please try again later.'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -292,7 +333,7 @@ const FeedbackAnalysis: React.FC = () => {
 
   if (!feedbackData) {
     return (
-      <div className="min-h-screen relative overflow-hidden pt-24 pb-12">
+      <div className="min-h-screen relative overflow-hidden">
         {/* Background gradient for light theme, pure black for dark */}
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:hidden" />
@@ -317,14 +358,14 @@ const FeedbackAnalysis: React.FC = () => {
             <p className="text-gray-600 text-center max-w-md mb-8">
               We couldn't find feedback for this interview. It may still be processing or there might have been an issue.
             </p>
-            <Button onClick={() => window.location.href = '/dashboard'}>
-              Return to Dashboard
-            </Button>
           </div>
         </div>
       </div>
     );
   }
+
+  const uniqueStrengths = feedbackData.strengths ? Array.from(new Set(feedbackData.strengths)) : [];
+  const uniqueImprovements = feedbackData.improvements ? Array.from(new Set(feedbackData.improvements)) : [];
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -418,7 +459,7 @@ const FeedbackAnalysis: React.FC = () => {
                       <div className="mb-6">
                         <h2 className="text-xl font-semibold mb-3 dark:text-slate-100">Overall Performance</h2>
                         <p className="text-gray-700 dark:text-slate-300 mb-6">{feedbackData.summary}</p>
-                        {feedbackData.strengths.length > 0 && (
+                        {uniqueStrengths.length > 0 && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                               <h3 className="font-medium mb-3 text-green-700 dark:text-green-300 flex items-center gap-2">
@@ -426,7 +467,7 @@ const FeedbackAnalysis: React.FC = () => {
                                 Strengths
                               </h3>
                               <ul className="space-y-2">
-                                {feedbackData.strengths.map((strength, index) => (
+                                {uniqueStrengths.map((strength, index) => (
                                   <li key={index} className="flex items-start gap-2">
                                     <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900 flex-shrink-0 flex items-center justify-center mt-0.5">
                                       <span className="text-green-700 dark:text-green-300 text-xs">✓</span>
@@ -443,7 +484,7 @@ const FeedbackAnalysis: React.FC = () => {
                                 Areas for Improvement
                               </h3>
                               <ul className="space-y-2">
-                                {feedbackData.improvements.map((improvement, index) => (
+                                {uniqueImprovements.map((improvement, index) => (
                                   <li key={index} className="flex items-start gap-2">
                                     <div className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900 flex-shrink-0 flex items-center justify-center mt-0.5">
                                       <span className="text-amber-700 dark:text-amber-300 text-xs">!</span>
@@ -712,22 +753,6 @@ const FeedbackAnalysis: React.FC = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  {/* Regenerate Feedback Button */}
-                  <Button
-                    className="w-full mt-6"
-                    variant="outline"
-                    onClick={handleSimulateFeedback}
-                    disabled={retryingFeedback}
-                  >
-                    {retryingFeedback ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <Loader2 className="animate-spin h-4 w-4" />
-                        Regenerating...
-                      </span>
-                    ) : (
-                      'Regenerate Feedback'
-                    )}
-                  </Button>
                 </>
               )}
             </motion.div>

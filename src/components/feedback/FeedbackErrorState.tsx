@@ -4,17 +4,13 @@ import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 
 interface FeedbackErrorStateProps {
-  title?: string;
   errorMessage?: string;
   onRetry: () => void;
-  onReturnToDashboard: () => void;
 }
 
 const FeedbackErrorState: React.FC<FeedbackErrorStateProps> = ({
-  title = 'Your interview',
   errorMessage = "We encountered an issue while generating your feedback. Our team has been notified.",
-  onRetry,
-  onReturnToDashboard
+  onRetry
 }) => {
   return (
     <Card className="border-0 shadow-md overflow-hidden">
@@ -45,9 +41,6 @@ const FeedbackErrorState: React.FC<FeedbackErrorStateProps> = ({
           <Button onClick={onRetry}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry
-          </Button>
-          <Button variant="outline" onClick={onReturnToDashboard}>
-            Return to Dashboard
           </Button>
         </div>
       </CardContent>

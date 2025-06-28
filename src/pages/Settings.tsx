@@ -159,7 +159,7 @@ const Settings: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black pt-24 pb-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       <div className="container-custom mx-auto">
         <Breadcrumb />
         <motion.div

@@ -275,7 +275,7 @@ const InterviewSetup: React.FC = () => {
           />
         ))}
       </div>
-      <div className="container-custom mx-auto relative z-10 px-2 sm:px-4">
+      <div className="container-custom mx-auto relative z-10">
         <div className="hidden md:block">
           <Breadcrumb />
         </div>
@@ -291,7 +291,7 @@ const InterviewSetup: React.FC = () => {
           </p>
         </motion.div>
         {/* Responsive main layout: column on mobile, row on desktop */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 items-start">
           {/* Main content */}
           <div className="w-full lg:flex-1">
             <motion.div
@@ -300,9 +300,9 @@ const InterviewSetup: React.FC = () => {
               transition={{ duration: 0.3, delay: 0.1 }}
             >
               <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl flex flex-col justify-start">
-                <CardContent className="p-3 sm:p-6 md:p-8 flex-1 flex flex-col">
+                <CardContent className="p-4 sm:p-6 md:p-8 flex-1 flex flex-col">
                   {/* Progress indicator */}
-                  <div className="mb-8 sm:mb-10">
+                  <div className="mb-6 sm:mb-8">
                     <div className="relative">
                       <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2"></div>
                       <div className="flex flex-row items-center justify-between relative gap-2 sm:gap-0 overflow-x-auto no-scrollbar">
@@ -317,7 +317,7 @@ const InterviewSetup: React.FC = () => {
                             } z-10 transition-all duration-300 flex items-center justify-center`} style={{lineHeight: 1}}>
                               {step > stepNumber ? <Check className="h-5 w-5" /> : stepNumber}
                             </div>
-                            <span className={`mt-3 sm:mt-4 text-xs sm:text-sm font-medium text-center w-full ${
+                            <span className={`mt-2 sm:mt-3 text-xs sm:text-sm font-medium text-center w-full ${
                               step === stepNumber ? 'text-primary-700' : 'text-gray-600'
                             }`}>
                               {stepNumber === 1 && "Interview Type"}
