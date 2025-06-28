@@ -82,6 +82,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // This prevents unnecessary loading states when just navigating between pages
             const shouldShowLoading = ['SIGNED_IN', 'SIGNED_UP'].includes(event) && !session;
             if (shouldShowLoading && authInitialized) {
+              console.log('🔑 AuthContext: SIGNED_OUT event received, setting user to null');
+            }
+
+            // Only set loading to true for sign-in and sign-up events
+            // This prevents unnecessary loading states when just navigating between pages
+            const shouldShowLoading = ['SIGNED_IN', 'SIGNED_UP'].includes(event) && !session;
+            if (shouldShowLoading && authInitialized) {
               setLoading(true);
             }
 
@@ -196,8 +203,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           emailRedirectTo: `${window.location.origin}/dashboard`
         }
       });
-      
-      if (error) throw error;
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error) {
+        console.error('Error in supabase.auth.signOut():', JSON.stringify(error, null, 2));
+        throw error;
+      }
       
       if (data.user && data.session) {
         // User is automatically signed in after signup
@@ -288,11 +298,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('Executing redirect to home page');
         window.location.href = '/';
       }, 100);
+        console.log('Executing redirect to home page');
+        window.location.href = '/';
+      }, 100);
     } catch (error) {
       console.error('Error logging out:', JSON.stringify(error, null, 2));
       // Even if there's an error, clear the user state and redirect
       setUser(null);
       setTimeout(() => {
+        console.log('Executing redirect after error');
+        window.location.href = '/';
+      }, 100);
         console.log('Executing redirect after error');
         window.location.href = '/';
       }, 100);

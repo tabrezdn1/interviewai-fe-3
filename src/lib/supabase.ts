@@ -49,7 +49,7 @@ export const clearAuthTokens = async () => {
 // Handle auth state changes and token errors
 supabase.auth.onAuthStateChange(async (event, session) => {
   if (event === 'TOKEN_REFRESHED') {
-    console.log('Token refreshed successfully');
+    console.log('Token refreshed successfully')
   } else if (event === 'SIGNED_OUT') {
     // Clear any remaining tokens when signed out
     console.log('SIGNED_OUT event detected in supabase.ts');
