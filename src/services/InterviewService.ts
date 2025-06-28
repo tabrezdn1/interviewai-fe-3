@@ -321,16 +321,20 @@ export async function startFeedbackProcessing(interviewId: string, tavusConversa
   try {
     // Check if Supabase is configured before making requests
     if (isSupabaseConfigured()) {
-      // Update interview status to processing
+    // Also update the main status to 'completed' and set completed_at timestamp
+    // This ensures the interview immediately moves from "Upcoming" to "Completed" section
+    if (isSupabaseConfigured()) {
       const { error: updateError } = await supabase
         .from('interviews')
         .update({
+          status: 'completed', // Mark as completed immediately
+          completed_at: new Date().toISOString(), // Set completion timestamp
           feedback_processing_status: 'processing'
         })
         .eq('id', interviewId);
       
       if (updateError) {
-        console.error('Error updating interview feedback status:', updateError);
+        console.error('Error updating interview status to processing:', updateError);
       }
     }
 

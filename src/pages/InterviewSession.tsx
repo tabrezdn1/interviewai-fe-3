@@ -230,12 +230,10 @@ const InterviewSessionContent: React.FC = () => {
       setShowEndCallConfirm(false);
       
       console.error('Error ending call:', error);
-      // Still proceed to complete the interview
-      handleCompleteInterview();
+      // Navigate to dashboard anyway
+      navigate('/dashboard');
     }
   };
-
-  if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center transition-colors duration-500 bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-black dark:via-black dark:to-black text-gray-900 dark:text-white">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary dark:border-blue-500 mb-6"></div>
@@ -462,12 +460,6 @@ const InterviewSessionContent: React.FC = () => {
       
     </div>
   );
-  
-  // Fallback function for error handling
-  function handleCompleteInterview(actualMinutesUsed?: number) {
-    console.error('Fallback handleCompleteInterview called - this should not happen normally');
-    navigate('/dashboard');
-  }
 };
 
 // Main component - now with Daily provider handled internally
