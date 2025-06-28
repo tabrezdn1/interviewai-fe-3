@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
-  BarChart3, ThumbsUp, ThumbsDown, Award, Crown, Loader2, RefreshCw, AlertCircle,
-  BarChart2, ArrowUpRight, Download, Share2, Clock, MessageSquare, User, Star, Play,
-  Building, Briefcase, Calendar
+  ThumbsUp, ThumbsDown, Award, Loader2, BarChart2, Clock, MessageSquare, User, Star, Building, Briefcase
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
+import { Card, CardContent } from '../components/ui/card';
 import { getFeedback, getInterview, startFeedbackProcessing } from '../services/InterviewService';
-import { getScoreColor, getScoreTextColor, getScoreBackgroundColor, getScoreRating } from '../lib/utils.tsx';
-import { nextStepsRecommendations } from '../data/feedback';
+import { getScoreColor, getScoreTextColor, getScoreRating } from '../lib/utils.tsx';
 import { useAuth } from '../hooks/useAuth';
-import BackButton from '../components/layout/BackButton';
 import Breadcrumb from '../components/layout/Breadcrumb';
-import AIInsightsDisplay from '../components/feedback/AIInsightsDisplay';
+import { supabase } from '../lib/supabase';
+import ReactMarkdown from 'react-markdown';
 
 interface FeedbackData {
   interviewId: string;
@@ -71,10 +67,8 @@ const FeedbackAnalysis: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null);
   const [activeTab, setActiveTab] = useState('summary');
-  const [isSimulating, setIsSimulating] = useState(false);
   const [interviewStatus, setInterviewStatus] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState(false);
   const [retryingFeedback, setRetryingFeedback] = useState(false);
@@ -98,7 +92,11 @@ const FeedbackAnalysis: React.FC = () => {
           }
 
           if (feedback && feedback.processing_status === 'completed') {
-            setFeedbackData(feedback);
+            setFeedbackData({
+              ...feedback,
+              interviewId: id || '',
+              error_message: feedback.error_message || null
+            });
           } else if (feedback && (feedback.processing_status === 'processing' || feedback.processing_status === 'pending')) {
             // If feedback is still processing, set minimal data
             setFeedbackData({
@@ -115,7 +113,8 @@ const FeedbackAnalysis: React.FC = () => {
                 experience: { score: 0, feedback: '' }
               },
               processing_status: feedback.processing_status,
-              error_message: feedback.error_message
+              error_message: feedback.error_message || null,
+              interviewId: id || ''
             });
           } else if (feedback && feedback.processing_status === 'failed') {
             setFeedbackData({
@@ -123,7 +122,8 @@ const FeedbackAnalysis: React.FC = () => {
               overallScore: 0,
               summary: feedback.error_message || 'Feedback generation failed. Please try again later.',
               processing_status: feedback.processing_status,
-              error_message: feedback.error_message
+              error_message: feedback.error_message || null,
+              interviewId: id || ''
             });
           }
         }
@@ -238,7 +238,8 @@ const FeedbackAnalysis: React.FC = () => {
         return {
           ...prev,
           processing_status: 'failed',
-          error_message: error instanceof Error ? error.message : 'Unknown error occurred'
+          error_message: error instanceof Error ? error.message : 'Unknown error occurred',
+          interviewId: id || ''
         };
       });
       setInterviewStatus('failed');
@@ -263,7 +264,6 @@ const FeedbackAnalysis: React.FC = () => {
             transition={{ duration: 0.3 }}
             className="mb-8"
           >
-            <BackButton className="mb-4" />
             <h1 className="text-3xl font-bold mb-2">Interview Feedback</h1>
             <p className="text-gray-600">
               Your interview feedback is being generated
@@ -306,7 +306,6 @@ const FeedbackAnalysis: React.FC = () => {
             transition={{ duration: 0.3 }}
             className="mb-8"
           >
-            <BackButton className="mb-4" />
             <h1 className="text-3xl font-bold mb-2">Interview Feedback</h1>
             <p className="text-gray-600">
               Feedback not available
@@ -342,7 +341,6 @@ const FeedbackAnalysis: React.FC = () => {
           transition={{ duration: 0.3 }}
           className="mb-8"
         >
-          <BackButton className="mb-4" />
           <h1 className="text-3xl font-bold mb-2">Interview Feedback</h1>
           <p className="text-gray-600">
             {feedbackData.title} • {new Date(feedbackData.date).toLocaleDateString('en-US', { 
@@ -355,7 +353,7 @@ const FeedbackAnalysis: React.FC = () => {
           </p>
         </motion.div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           <div className="lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -363,11 +361,11 @@ const FeedbackAnalysis: React.FC = () => {
               transition={{ duration: 0.3, delay: 0.1 }}
               className="mb-8"
             >
-              <Card className="overflow-hidden bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
-                <div className="border-b border-gray-200 dark:border-slate-700">
-                  <div className="flex">
+              <Card className="overflow-hidden bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700 rounded-lg h-[70vh] min-h-[350px] sm:min-h-[500px] flex flex-col">
+                <div className="border-b border-gray-200 dark:border-slate-700 overflow-x-auto">
+                  <div className="flex overflow-x-auto flex-nowrap w-full">
                     <button
-                      className={`px-6 py-4 font-medium text-sm transition-colors ${
+                      className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
                         activeTab === 'summary'
                           ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
                           : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
@@ -377,7 +375,7 @@ const FeedbackAnalysis: React.FC = () => {
                       Summary
                     </button>
                     <button
-                      className={`px-6 py-4 font-medium text-sm transition-colors ${
+                      className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
                         activeTab === 'skills'
                           ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
                           : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
@@ -387,19 +385,29 @@ const FeedbackAnalysis: React.FC = () => {
                       Skills Assessment
                     </button>
                     <button
-                      className={`px-6 py-4 font-medium text-sm transition-colors ${
+                      className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
                         activeTab === 'transcript'
                           ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
                           : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
                       }`}
                       onClick={() => setActiveTab('transcript')}
                     >
-                      Transcript & Analysis
+                      Transcript
+                    </button>
+                    <button
+                      className={`min-w-max px-6 py-4 font-medium text-sm transition-colors ${
+                        activeTab === 'analysis'
+                          ? 'text-primary-600 border-b-2 border-primary-600 dark:text-blue-400 dark:border-blue-400'
+                          : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'
+                      }`}
+                      onClick={() => setActiveTab('analysis')}
+                    >
+                      Analysis
                     </button>
                   </div>
                 </div>
                 
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6 flex-1 overflow-y-auto">
                   {/* Summary Tab */}
                   {activeTab === 'summary' && (
                     <motion.div
@@ -407,121 +415,46 @@ const FeedbackAnalysis: React.FC = () => {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.2 }}
                     >
-                     <div className="mb-6">
-                       <h2 className="text-xl font-semibold mb-3 dark:text-slate-100">Overall Performance</h2>
-                       <p className="text-gray-700 dark:text-slate-300 mb-6">{feedbackData.summary}</p>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <h3 className="font-medium mb-3 text-green-700 dark:text-green-300 flex items-center gap-2">
-                              <ThumbsUp className="h-5 w-5" />
-                              Strengths
-                            </h3>
-                            <ul className="space-y-2">
-                              {feedbackData.strengths.map((strength, index) => (
-                                <li key={index} className="flex items-start gap-2">
-                                  <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900 flex-shrink-0 flex items-center justify-center mt-0.5">
-                                    <span className="text-green-700 dark:text-green-300 text-xs">✓</span>
-                                  </div>
-                                  <span className="text-gray-700 dark:text-slate-200">{strength}</span>
-                                </li>
-                              ))}
-                            </ul>
+                      <div className="mb-6">
+                        <h2 className="text-xl font-semibold mb-3 dark:text-slate-100">Overall Performance</h2>
+                        <p className="text-gray-700 dark:text-slate-300 mb-6">{feedbackData.summary}</p>
+                        {feedbackData.strengths.length > 0 && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                              <h3 className="font-medium mb-3 text-green-700 dark:text-green-300 flex items-center gap-2">
+                                <ThumbsUp className="h-5 w-5" />
+                                Strengths
+                              </h3>
+                              <ul className="space-y-2">
+                                {feedbackData.strengths.map((strength, index) => (
+                                  <li key={index} className="flex items-start gap-2">
+                                    <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                      <span className="text-green-700 dark:text-green-300 text-xs">✓</span>
+                                    </div>
+                                    <span className="text-gray-700 dark:text-slate-200">{strength}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            
+                            <div>
+                              <h3 className="font-medium mb-3 text-amber-700 dark:text-amber-300 flex items-center gap-2">
+                                <ThumbsDown className="h-5 w-5" />
+                                Areas for Improvement
+                              </h3>
+                              <ul className="space-y-2">
+                                {feedbackData.improvements.map((improvement, index) => (
+                                  <li key={index} className="flex items-start gap-2">
+                                    <div className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                      <span className="text-amber-700 dark:text-amber-300 text-xs">!</span>
+                                    </div>
+                                    <span className="text-gray-700 dark:text-slate-200">{improvement}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
                           </div>
-                          
-                          <div>
-                            <h3 className="font-medium mb-3 text-amber-700 dark:text-amber-300 flex items-center gap-2">
-                              <ThumbsDown className="h-5 w-5" />
-                              Areas for Improvement
-                            </h3>
-                            <ul className="space-y-2">
-                              {feedbackData.improvements.map((improvement, index) => (
-                                <li key={index} className="flex items-start gap-2">
-                                  <div className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900 flex-shrink-0 flex items-center justify-center mt-0.5">
-                                    <span className="text-amber-700 dark:text-amber-300 text-xs">!</span>
-                                  </div>
-                                  <span className="text-gray-700 dark:text-slate-200">{improvement}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-8">
-                        <h3 className="font-medium mb-4 dark:text-slate-100">Key Metrics</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <MetricCard 
-                            label="Overall Score" 
-                            value={`${feedbackData.overallScore}%`} 
-                            icon={<Award className="h-5 w-5 text-primary-600" />}
-                          />
-                          <MetricCard 
-                            label="Duration" 
-                            value={`${feedbackData.duration} min`} 
-                            icon={<Clock className="h-5 w-5 text-primary-600" />}
-                          />
-                          <MetricCard 
-                            label="Questions" 
-                            value={feedbackData.questionResponses.length.toString()} 
-                            icon={<MessageSquare className="h-5 w-5 text-primary-600" />}
-                          />
-                          <MetricCard 
-                            label="Top Skill" 
-                            value="Communication" 
-                            icon={<Star className="h-5 w-5 text-primary-600" />}
-                          />
-                        </div>
-                       
-                       <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-800/80 rounded-lg">
-                         <h4 className="font-medium mb-3 dark:text-slate-100">Interview Configuration</h4>
-                         <div className="grid grid-cols-2 gap-4">
-                           <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-                               <Briefcase className="h-4 w-4 text-purple-600 dark:text-purple-300" />
-                             </div>
-                             <div>
-                               <p className="text-xs text-gray-500">Position</p>
-                               <p className="text-sm font-medium">
-                                {feedbackData.role || "Not specified"}
-                               </p>
-                             </div>
-                           </div>
-                           <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                               <Building className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
-                             </div>
-                             <div>
-                               <p className="text-xs text-gray-500">Company</p>
-                               <p className="text-sm font-medium">
-                                {feedbackData.company || "Not specified"}
-                               </p>
-                             </div>
-                           </div>
-                           <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                               <Award className="h-4 w-4 text-blue-600 dark:text-blue-300" />
-                             </div>
-                             <div>
-                               <p className="text-xs text-gray-500">Difficulty Level</p>
-                               <p className="text-sm font-medium">
-                                {(feedbackData as any).difficulty_levels?.label || "Standard"}
-                               </p>
-                             </div>
-                           </div>
-                           <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                               <User className="h-4 w-4 text-green-600 dark:text-green-300" />
-                             </div>
-                             <div>
-                               <p className="text-xs text-gray-500">Experience Level</p>
-                               <p className="text-sm font-medium">
-                                {(feedbackData as any).experience_levels?.label || "Mid-Level"}
-                               </p>
-                             </div>
-                           </div>
-                         </div>
-                       </div>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -541,57 +474,48 @@ const FeedbackAnalysis: React.FC = () => {
                             label="Technical Knowledge" 
                             score={feedbackData.skillAssessment.technical.score} 
                             feedback={feedbackData.skillAssessment.technical.feedback}
+                            color="bg-blue-500"
                           />
                           
                           <SkillBar 
                             label="Communication" 
                             score={feedbackData.skillAssessment.communication.score} 
                             feedback={feedbackData.skillAssessment.communication.feedback}
+                            color="bg-green-500"
                           />
-                          
                           
                           <SkillBar 
                             label="Problem Solving" 
                             score={feedbackData.skillAssessment.problemSolving.score} 
                             feedback={feedbackData.skillAssessment.problemSolving.feedback}
+                            color="bg-orange-500"
                           />
                           <SkillBar 
                             label="Experience" 
                             score={feedbackData.skillAssessment.experience.score} 
                             feedback={feedbackData.skillAssessment.experience.feedback}
-                          />
-                          
-                          <SkillBar 
-                            label="Experience" 
-                            score={feedbackData.skillAssessment.experience.score} 
-                            feedback={feedbackData.skillAssessment.experience.feedback}
+                            color="bg-purple-500"
                           />
                         </div>
-                      </div>
-                      
-                      <div className="mt-8 p-4 bg-gray-50 dark:bg-slate-800/80 rounded-lg">
-                        <h3 className="font-medium mb-2">AI-Powered Recommendation</h3>
-                        <p className="text-gray-700 dark:text-slate-300 text-sm">
-                          Based on your performance, we recommend focusing on improving your system design skills and practicing more complex technical scenarios. Consider reviewing our advanced system design course and practicing with more challenging interview questions.
-                        </p>
                       </div>
                     </motion.div>
                   )}
                   
-                  {/* Transcript & Analysis Tab */}
+                  {/* Transcript Tab */}
                   {activeTab === 'transcript' && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.2 }}
+                      className="flex flex-col h-full"
                     >
-                      <div className="mb-6">
-                        <h2 className="text-xl font-semibold mb-3">Interview Transcript</h2>
+                      <h2 className="text-xl font-semibold mb-3">Interview Transcript</h2>
+                      <div className="flex-1 min-h-0">
                         {feedbackData.transcript ? (
-                          <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700 mb-6 max-h-96 overflow-y-auto">
-                            <pre className="whitespace-pre-wrap font-mono text-sm">
-                              {feedbackData.transcript && feedbackData.transcript.includes('user: ') 
-                                ? feedbackData.transcript.substring(feedbackData.transcript.indexOf('user: ')) 
+                          <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700 mb-6 max-h-full overflow-y-auto">
+                            <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-slate-200">
+                              {feedbackData.transcript && feedbackData.transcript.includes('user: ')
+                                ? feedbackData.transcript.substring(feedbackData.transcript.indexOf('user: '))
                                 : feedbackData.transcript}
                             </pre>
                           </div>
@@ -600,13 +524,25 @@ const FeedbackAnalysis: React.FC = () => {
                             <p className="text-gray-500 dark:text-slate-400 italic">No transcript available for this interview.</p>
                           </div>
                         )}
-                        
-                        <h2 className="text-xl font-semibold mb-3 mt-8">AI Analysis</h2>
+                      </div>
+                    </motion.div>
+                  )}
+                  {/* Analysis Tab */}
+                  {activeTab === 'analysis' && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="mb-6">
+                        <h2 className="text-xl font-semibold mb-3">AI Analysis</h2>
                         {feedbackData.tavus_analysis ? (
-                          <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700 max-h-96 overflow-y-auto">
-                            <pre className="text-sm text-gray-800">
-                              {JSON.stringify(feedbackData.tavus_analysis, null, 2)}
-                            </pre>
+                          <div className="prose dark:prose-invert max-w-none text-base leading-relaxed">
+                            <ReactMarkdown>{
+                              typeof feedbackData.tavus_analysis === 'string'
+                                ? feedbackData.tavus_analysis
+                                : JSON.stringify(feedbackData.tavus_analysis, null, 2)
+                            }</ReactMarkdown>
                           </div>
                         ) : (
                           <div className="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
@@ -621,34 +557,31 @@ const FeedbackAnalysis: React.FC = () => {
             </motion.div>
           </div>
           
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 w-full lg:sticky lg:top-24">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.2 }}
-              className="sticky top-24"
+              className="mb-8 lg:mb-0"
             >
               {feedbackData.processing_status === 'processing' ? (
-                <Card className="mb-6 bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
+                <Card className="mb-6 bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700 rounded-lg">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="font-semibold text-lg">Generating Feedback</h3>
                       <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                        <Loader2 className="h-5 w-5 text-blue-600 dark:text-blue-300 animate-spin" />
+                        <video src="/loading.webm" autoPlay loop muted playsInline className="w-8 h-8 object-contain" />
                       </div>
                     </div>
-                    
                     <div className="flex flex-col items-center justify-center mb-4">
                       <div className="relative w-32 h-32 flex items-center justify-center">
-                        <div className="absolute inset-0 border-4 border-gray-200 dark:border-slate-700 rounded-full"></div>
-                        <div className="absolute inset-0 border-4 border-blue-500 dark:border-blue-400 rounded-full border-t-transparent animate-spin"></div>
-                        <div className="text-center">
+                        <video src="/loading.webm" autoPlay loop muted playsInline className="w-24 h-24 object-contain" />
+                        <div className="text-center absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                           <p className="text-lg font-medium text-gray-600 dark:text-slate-200">Generating</p>
                           <p className="text-sm text-gray-500 dark:text-slate-400">Please wait</p>
                         </div>
                       </div>
                     </div>
-                    
                     <div className="text-center mb-6">
                       <p className="text-sm text-gray-600 dark:text-slate-400">
                         Your feedback is being generated. This may take a few minutes.
@@ -657,85 +590,146 @@ const FeedbackAnalysis: React.FC = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="mb-6 bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-center mb-6">
-                      <h3 className="font-semibold text-lg">Overall Score</h3>
-                      <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-blue-900 flex items-center justify-center">
-                        <BarChart2 className="h-5 w-5 text-primary-600 dark:text-blue-400" />
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-center mb-4">
-                      <div className="relative w-32 h-32">
-                        <svg className="w-full h-full" viewBox="0 0 100 100">
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="45"
-                            fill="none"
-                            stroke="#e5e7eb"
-                            strokeWidth="10"
-                          />
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="45"
-                            fill="none"
-                            stroke={getScoreColor(feedbackData.overallScore)}
-                            strokeWidth="10"
-                            strokeDasharray={`${2 * Math.PI * 45 * feedbackData.overallScore / 100} ${2 * Math.PI * 45 * (1 - feedbackData.overallScore / 100)}`}
-                            strokeDashoffset={2 * Math.PI * 45 * 0.25}
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-3xl font-bold dark:text-slate-100">{feedbackData.overallScore}</span>
+                <>
+                  <Card className="mb-6 bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700 rounded-lg">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-semibold text-lg">Overall Score</h3>
+                        <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-blue-900 flex items-center justify-center">
+                          <BarChart2 className="h-5 w-5 text-primary-600 dark:text-blue-400" />
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="text-center mb-6">
-                      <p className="text-lg font-medium dark:text-slate-200">
-                        {getScoreRating(feedbackData.overallScore)}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                      
+                      <div className="flex items-center justify-center mb-4">
+                        <div className="relative w-32 h-32">
+                          <svg className="w-full h-full" viewBox="0 0 100 100">
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r="45"
+                              fill="none"
+                              stroke="#e5e7eb"
+                              strokeWidth="10"
+                            />
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r="45"
+                              fill="none"
+                              stroke={getScoreColor(feedbackData.overallScore)}
+                              strokeWidth="10"
+                              strokeDasharray={`${2 * Math.PI * 45 * feedbackData.overallScore / 100} ${2 * Math.PI * 45 * (1 - feedbackData.overallScore / 100)}`}
+                              strokeDashoffset={2 * Math.PI * 45 * 0.25}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-3xl font-bold dark:text-slate-100">{feedbackData.overallScore}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-center mb-6">
+                        <p className="text-lg font-medium dark:text-slate-200">
+                          {getScoreRating(feedbackData.overallScore)}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  {/* New Card for Key Metrics and Interview Configuration */}
+                  <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700 rounded-lg">
+                    <CardContent className="p-6">
+                      <h3 className="font-medium text-lg mb-4 dark:text-slate-100">Key Metrics</h3>
+                      <div className="flex flex-row flex-wrap gap-4 mb-6">
+                        {feedbackData.overallScore > 0 && (
+                          <MetricCard 
+                            label="Overall Score" 
+                            value={`${feedbackData.overallScore}%`} 
+                            icon={<Award className="h-5 w-5 text-primary-600" />}
+                          />
+                        )}
+                        {feedbackData.duration > 0 && (
+                          <MetricCard 
+                            label="Duration" 
+                            value={`${feedbackData.duration} min`} 
+                            icon={<Clock className="h-5 w-5 text-primary-600" />}
+                          />
+                        )}
+                        {feedbackData.questionResponses.length > 0 && (
+                          <MetricCard 
+                            label="Questions" 
+                            value={feedbackData.questionResponses.length.toString()} 
+                            icon={<MessageSquare className="h-5 w-5 text-primary-600" />}
+                          />
+                        )}
+                      </div>
+                      <h4 className="font-medium text-base mb-3 dark:text-slate-100">Interview Configuration</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {feedbackData.role && (
+                          <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-purple-50/40 dark:bg-purple-900/30">
+                            <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center mb-1">
+                              <Briefcase className="h-4 w-4 text-purple-600 dark:text-purple-300" />
+                            </div>
+                            <div className="text-center sm:text-left">
+                              <p className="text-xs text-gray-500">Position</p>
+                              <p className="text-sm font-medium break-words">{feedbackData.role}</p>
+                            </div>
+                          </div>
+                        )}
+                        {feedbackData.company && (
+                          <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-indigo-50/40 dark:bg-indigo-900/30">
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center mb-1">
+                              <Building className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
+                            </div>
+                            <div className="text-center sm:text-left">
+                              <p className="text-xs text-gray-500">Company</p>
+                              <p className="text-sm font-medium break-words">{feedbackData.company}</p>
+                            </div>
+                          </div>
+                        )}
+                        {feedbackData.difficulty_levels && (
+                          <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-blue-50/40 dark:bg-blue-900/30">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mb-1">
+                              <Award className="h-4 w-4 text-blue-600 dark:text-blue-300" />
+                            </div>
+                            <div className="text-center sm:text-left">
+                              <p className="text-xs text-gray-500">Difficulty Level</p>
+                              <p className="text-sm font-medium break-words">{feedbackData.difficulty_levels.label}</p>
+                            </div>
+                          </div>
+                        )}
+                        {feedbackData.experience_levels && (
+                          <div className="flex flex-col items-center sm:items-start gap-2 p-2 rounded-lg bg-green-50/40 dark:bg-green-900/30">
+                            <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mb-1">
+                              <User className="h-4 w-4 text-green-600 dark:text-green-300" />
+                            </div>
+                            <div className="text-center sm:text-left">
+                              <p className="text-xs text-gray-500">Experience Level</p>
+                              <p className="text-sm font-medium break-words">{feedbackData.experience_levels.label}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  {/* Regenerate Feedback Button */}
+                  <Button
+                    className="w-full mt-6"
+                    variant="outline"
+                    onClick={handleSimulateFeedback}
+                    disabled={retryingFeedback}
+                  >
+                    {retryingFeedback ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="animate-spin h-4 w-4" />
+                        Regenerating...
+                      </span>
+                    ) : (
+                      'Regenerate Feedback'
+                    )}
+                  </Button>
+                </>
               )}
-              
-              <Card className="bg-white dark:bg-slate-900/90 border border-gray-100 dark:border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold dark:text-slate-100">Next Steps</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 pt-0">
-                  <ul className="space-y-3">
-                    {nextStepsRecommendations.map((step, index) => (
-                      <li key={index}>
-                        <Link 
-                          to={step.link} 
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors dark:bg-slate-800/80 dark:hover:bg-slate-700"
-                        >
-                          <span className="font-medium dark:text-slate-100">{step.title}</span>
-                          <ArrowUpRight className="h-4 w-4 text-gray-600 dark:text-slate-300" />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
-                    <Button 
-                      asChild
-                     variant="interview"
-                     className="w-full flex items-center justify-center gap-2 font-medium"
-                    >
-                      <Link to="/setup">
-                        Schedule New Interview
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
             </motion.div>
           </div>
         </div>
@@ -752,12 +746,12 @@ interface MetricCardProps {
 
 const MetricCard: React.FC<MetricCardProps> = ({ label, value, icon }) => {
   return (
-    <div className="bg-gray-50 dark:bg-slate-800/80 rounded-lg p-4">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="flex flex-col items-start bg-gray-50 dark:bg-slate-800/80 rounded-lg px-4 py-3 min-w-[120px]">
+      <div className="flex items-center gap-2 mb-1">
         {icon}
-        <span className="text-sm text-gray-600 dark:text-slate-300">{label}</span>
+        <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">{label}</span>
       </div>
-      <p className="text-xl font-semibold dark:text-slate-100">{value}</p>
+      <span className="text-lg font-semibold dark:text-slate-100">{value}</span>
     </div>
   );
 };
@@ -766,9 +760,10 @@ interface SkillBarProps {
   label: string;
   score: number;
   feedback: string;
+  color: string;
 }
 
-const SkillBar: React.FC<SkillBarProps> = ({ label, score, feedback }) => {
+const SkillBar: React.FC<SkillBarProps> = ({ label, score, feedback, color }) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-2">
@@ -777,7 +772,7 @@ const SkillBar: React.FC<SkillBarProps> = ({ label, score, feedback }) => {
       </div>
       <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden mb-2">
         <div 
-          className={`h-full rounded-l-full ${getScoreBackgroundColor(score)}`}
+          className={`h-full rounded-l-full ${color}`}
           style={{ width: `${score}%` }}
         ></div>
       </div>
