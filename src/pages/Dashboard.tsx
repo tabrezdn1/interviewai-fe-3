@@ -2,50 +2,48 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
-  PlusCircle, Clock, CheckCircle, XCircle, BarChart2, ChevronRight, Calendar,
-  Award, MoreVertical, Edit, Trash2, CalendarDays, User, RefreshCw,
-  MessageSquare, Zap, Trophy, BookOpen
+  PlusCircle, Clock, CheckCircle, XCircle, ChevronRight, Calendar, MessageSquare, Trophy, Award, Zap, BookOpen
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { getConversationMinutes } from '../services/ProfileService';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
-import { formatDate, formatTime } from '../lib/utils';
+import { formatDate } from '../lib/utils';
 import { getInterviews, deleteInterview, cancelInterview, retryPromptGeneration, startFeedbackProcessing } from '../services/InterviewService';
 import { interviewTips } from '../data/feedback';
 import InterviewCard from '../components/dashboard/InterviewCard';
 
+// Use the same interface as InterviewCard component
 interface Interview {
   id: string;
   title: string;
   company: string | null;
+  role: string;
   scheduled_at: string;
   status: string;
-  score: number | null;
-  role?: string;
+  score?: number | null;
+  duration?: number;
+  prompt_status?: string;
+  prompt_error?: string;
   feedback_processing_status?: string;
   tavus_conversation_id?: string | null;
-  interview_types?: {
-    title: string;
-  };
-  prompt_status?: 'ready' | 'generating' | 'failed';
-  duration?: number;
   experience_levels?: {
     label: string;
   };
   difficulty_levels?: {
     label: string;
   };
+  interview_types?: {
+    type: string;
+    title: string;
+  };
+  completed_at?: string;
+  created_at?: string;
 }
 
 const Dashboard: React.FC = () => {
-  const { user, isAuthenticated, loading: authLoading } = useAuth();
-  const [isPolling, setIsPolling] = useState(true);
-  const [pollingInterval, setPollingInterval] = useState(15000); // 15 seconds
-  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
@@ -66,109 +64,123 @@ const Dashboard: React.FC = () => {
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const pollingTimerRef = useRef<number | null>(null);
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const hasFetchedData = useRef(false);
+
+  // Function to transform API data to Interview interface
+  const transformInterviewData = (apiData: any[]): Interview[] => {
+    return apiData.map(item => ({
+      id: item.id,
+      title: item.title,
+      company: item.company,
+      role: item.role || '',
+      scheduled_at: item.scheduled_at,
+      status: item.status,
+      score: item.score,
+      duration: item.duration,
+      prompt_status: item.prompt_status,
+      prompt_error: item.prompt_error,
+      feedback_processing_status: item.feedback_processing_status,
+      tavus_conversation_id: item.tavus_conversation_id,
+      experience_levels: item.experience_levels ? { label: item.experience_levels.label } : undefined,
+      difficulty_levels: item.difficulty_levels ? { label: item.difficulty_levels.label } : undefined,
+      interview_types: item.interview_types ? { type: item.interview_types.type, title: item.interview_types.title } : undefined,
+      completed_at: item.completed_at,
+      created_at: item.created_at
+    }));
+  };
 
   // Function to fetch interviews data
   const fetchInterviewsData = useCallback(async (showLoadingState = false) => {
-    console.log('📊 Dashboard: fetchInterviewsData called', { 
-      showLoadingState, 
-      userId: user?.id,
-      isPolling
-    });
+    console.log('📊 Dashboard: fetchInterviewsData called', { showLoadingState, userId: user?.id });
+    setFetchError(null);
+    if (showLoadingState) setIsRefreshing(true);
+    setDataLoading(true);
     
-    if (!user) {
-      console.log('📊 Dashboard: No user, showing mock data');
-      // If no user, show empty array
-      setInterviews([]);
+    // Set a timeout to force stop loading after 15 seconds
+    const loadingTimeout = setTimeout(() => {
+      console.log('📊 Dashboard: Loading timeout reached, forcing stop');
       setDataLoading(false);
-      return;
-    }
-    
-    if (showLoadingState) {
-      console.log('📊 Dashboard: Setting isRefreshing to true');
-      setIsRefreshing(true);
-    }
+      setIsRefreshing(false);
+    }, 15000);
     
     try {
-      console.log('📊 Dashboard: Fetching interviews and minutes data');
+      if (!user) throw new Error('User not found');
+      console.log('📊 Dashboard: Starting API calls');
       const [data, minutes] = await Promise.all([
         getInterviews(user.id),
         getConversationMinutes(user.id),
       ]);
+      console.log('📊 Dashboard: API calls completed', { dataLength: data.length, hasMinutes: !!minutes });
       
-      console.log('📊 Dashboard: Data fetched successfully', { 
-        interviewsCount: data.length,
-        hasMinutes: !!minutes
-      });
+      // Clear the timeout since we got a response
+      clearTimeout(loadingTimeout);
       
       setConversationMinutes(minutes);
+      const transformedData = transformInterviewData(data);
+      setInterviews(transformedData);
+      generateRecentActivities(transformedData);
+      console.log('📊 Dashboard: Data set successfully');
       
-      // Set interviews data from database
-      setInterviews(data);
-
-      // Generate recent activities from interview data
-      generateRecentActivities(data);
-      
-      // Update last refreshed timestamp
-      setLastRefreshed(new Date());
-    } catch (error) {
-      console.error('Failed to fetch interviews:', error);
-      console.log('📊 Dashboard: Error fetching data, using mock data as fallback');
-      // Use empty array as fallback
-      setInterviews([]);
-    } finally {
-      console.log('📊 Dashboard: Setting loading state to false');
+      // Set loading to false after successful data setting
       setDataLoading(false);
-      if (showLoadingState) {
-        console.log('📊 Dashboard: Setting isRefreshing to false');
-        setIsRefreshing(false);
-      }
+      setIsRefreshing(false);
+    } catch (error) {
+      console.error('📊 Dashboard: Error in fetchInterviewsData', error);
+      
+      // Clear the timeout since we got an error
+      clearTimeout(loadingTimeout);
+      
+      setFetchError('Failed to load dashboard data.');
+      setInterviews([]);
+      
+      // Set loading to false after error
+      setDataLoading(false);
+      setIsRefreshing(false);
     }
   }, [user]);
   
   // Initial data fetch
   useEffect(() => {
-    console.log('📊 Dashboard: Initial useEffect for data fetch');
+    console.log('📊 Dashboard: Initial useEffect for data fetch', { 
+      hasUser: !!user, 
+      authLoading, 
+      dataLoading 
+    });
+    
     // Only fetch data if we have a user and auth is not loading
-    if (user && !authLoading) {
+    if (user && !authLoading && !hasFetchedData.current) {
+      console.log('📊 Dashboard: Fetching data - user available and auth not loading');
+      hasFetchedData.current = true;
       setDataLoading(true);
       fetchInterviewsData(true);
     } else if (!authLoading && !user) {
       // If auth is done loading and we have no user, show empty array
+      console.log('📊 Dashboard: No user after auth loaded, showing empty state');
       setInterviews([]);
       setDataLoading(false);
+      hasFetchedData.current = false;
     }
-  }, [fetchInterviewsData, user, authLoading]);
+    // If authLoading is true, do nothing - wait for it to complete
+  }, [user, authLoading]); // Remove fetchInterviewsData from dependencies to prevent loops
   
-  // Set up polling
+  // Additional effect to refresh data when user becomes available after navigation
   useEffect(() => {
-    console.log('📊 Dashboard: Setting up polling', { isPolling, userId: user?.id });
-    // Clear any existing interval
-    if (pollingTimerRef.current) {
-      console.log('📊 Dashboard: Clearing existing polling interval');
-      window.clearInterval(pollingTimerRef.current);
-      pollingTimerRef.current = null;
+    if (user && !authLoading && !dataLoading && interviews.length === 0 && !hasFetchedData.current) {
+      console.log('📊 Dashboard: User available but no data, refreshing...');
+      hasFetchedData.current = true;
+      fetchInterviewsData(true);
     }
-    
-    // Set up new interval if polling is enabled
-    if (isPolling && user) {
-      console.log(`📊 Dashboard: Starting polling interval (${pollingInterval}ms)`);
-      pollingTimerRef.current = window.setInterval(() => {
-        console.log('Polling: Fetching updated interview data...');
-        fetchInterviewsData();
-      }, pollingInterval);
+  }, [user, authLoading, dataLoading, interviews.length]); // Remove fetchInterviewsData from dependencies
+  
+  // Timeout fallback: stop loading after 10s
+  useEffect(() => {
+    if (dataLoading) {
+      const timeout = setTimeout(() => setDataLoading(false), 10000);
+      return () => clearTimeout(timeout);
     }
-    
-    // Cleanup function
-    return () => {
-      if (pollingTimerRef.current) {
-        console.log('📊 Dashboard: Cleaning up polling interval on unmount');
-        window.clearInterval(pollingTimerRef.current);
-        pollingTimerRef.current = null;
-      }
-    };
-  }, [isPolling, pollingInterval, fetchInterviewsData, user]);
+  }, [dataLoading]);
   
   // Function to generate recent activities from interview data
   const generateRecentActivities = (interviewsData: Interview[]) => {
@@ -451,10 +463,9 @@ const Dashboard: React.FC = () => {
     console.log('📊 Dashboard: Rendering loading state', { authLoading, dataLoading });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+        <video src="/loading.webm" autoPlay loop muted playsInline className="w-20 h-20 object-contain" />
       </div>
     );
-    
   }
   
   console.log('📊 Dashboard: Rendering dashboard content', {
@@ -465,7 +476,7 @@ const Dashboard: React.FC = () => {
   });
   
   return (
-    <div className="min-h-screen pt-24 pb-12 relative overflow-hidden">
+    <div className="min-h-screen pt-16 sm:pt-20 lg:pt-24 pb-8 sm:pb-12 relative overflow-hidden">
       {/* Full-screen fixed gradient background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         {/* Light theme: soft blue/purple gradient */}
@@ -473,6 +484,7 @@ const Dashboard: React.FC = () => {
         {/* Dark theme: pure black background only */}
         <div className="absolute inset-0 hidden dark:block bg-black" />
       </div>
+      
       {/* Subtle animated bubbles */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         {Array.from({ length: 8 }).map((_, i) => (
@@ -500,77 +512,41 @@ const Dashboard: React.FC = () => {
           />
         ))}
       </div>
+      
       <div className="container-custom mx-auto relative z-10">
-        {/* Add a hidden debug panel that can be shown with a keyboard shortcut */}
-        <div id="debug-panel" className="hidden fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 z-50 max-h-64 overflow-auto text-xs">
-          <h3 className="font-bold mb-2">Debug Info:</h3>
-          <p>User: {user ? `${user.name} (${user.id})` : 'Not logged in'}</p>
-          <p>Auth: {isAuthenticated ? 'Authenticated' : 'Not authenticated'}</p>
-          <p>Loading: {isLoading ? 'True' : 'False'}</p>
-          <p>Refreshing: {isRefreshing ? 'True' : 'False'}</p>
-          <p>Polling: {isPolling ? `Active (${pollingInterval}ms)` : 'Inactive'}</p>
-          <p>Last Refreshed: {lastRefreshed ? lastRefreshed.toLocaleTimeString() : 'Never'}</p>
-          <p>Interviews: {interviews.length} total ({upcomingInterviews.length} upcoming, {completedInterviews.length} completed)</p>
-          <p>Minutes: {conversationMinutes ? `${conversationMinutes.used}/${conversationMinutes.total} (${conversationMinutes.remaining} remaining)` : 'Not loaded'}</p>
-        </div>
-        
-        <div className="mb-8">
+        {/* Header Section */}
+        <div className="mb-6 sm:mb-8 lg:mb-12">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           > 
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-              <div>
-                <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-                <p className="text-gray-600">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
+              <div className="space-y-2">
+                <h1 className="heading-responsive font-bold">Dashboard</h1>
+                <p className="body-responsive text-gray-600 dark:text-gray-400">
                   Welcome back, {user?.name || 'Guest'}! Manage your interview practice sessions.
                 </p>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => fetchInterviewsData(true)}
-                  disabled={isRefreshing}
-                  className="flex items-center gap-2 hover:bg-blue-700 dark:hover:bg-blue-600"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  {isRefreshing ? 'Refreshing...' : 'Refresh'}
-                </Button>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="hover:bg-blue-700 dark:hover:bg-blue-600">Auto-refresh</Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setIsPolling(!isPolling)}>
-                      {isPolling ? '✓ Enabled (15s)' : '○ Disabled'}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-xs text-gray-500">{lastRefreshed ? `Last updated: ${lastRefreshed.toLocaleTimeString()}` : 'Not yet refreshed'}</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
             </div>
           </motion.div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-12">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+            <Card className="card-responsive border border-white/40 dark:border-slate-700/60 shadow-responsive bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl hover-responsive">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
-                <Clock className="h-4 w-4 text-primary-600" />
+                <CardTitle className="text-sm sm:text-base font-medium">Upcoming</CardTitle>
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{upcomingInterviews.length}</div>
-                <p className="text-xs text-gray-500">Scheduled interviews</p>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold">{upcomingInterviews.length}</div>
+                <p className="text-xs sm:text-sm text-gray-500">Scheduled interviews</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -580,14 +556,14 @@ const Dashboard: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
           >
-            <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+            <Card className="card-responsive border border-white/40 dark:border-slate-700/60 shadow-responsive bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl hover-responsive">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">Completed</CardTitle>
-                <CheckCircle className="h-4 w-4 text-success-600" />
+                <CardTitle className="text-sm sm:text-base font-medium">Completed</CardTitle>
+                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{completedInterviews.length}</div>
-                <p className="text-xs text-gray-500">Completed interviews</p>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold">{completedInterviews.length}</div>
+                <p className="text-xs sm:text-sm text-gray-500">Completed interviews</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -596,244 +572,240 @@ const Dashboard: React.FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.3 }}
+            className="sm:col-span-2 lg:col-span-1"
           >
-            <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+            <Card className="card-responsive border border-white/40 dark:border-slate-700/60 shadow-responsive bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl hover-responsive">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">Conversation Minutes</CardTitle>
-                <Clock className="h-4 w-4 text-accent-600" />
+                <CardTitle className="text-sm sm:text-base font-medium">Conversation Minutes</CardTitle>
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-accent-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold flex items-baseline gap-1">
-                  {conversationMinutes?.remaining || 0}
-                  <span className="text-sm text-gray-500 font-normal">/ {conversationMinutes?.total || 0}</span>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold">
+                  {conversationMinutes ? conversationMinutes.remaining : 0}
                 </div>
-                <p className="text-xs text-gray-500">Minutes remaining</p>
-                {conversationMinutes && conversationMinutes.remaining < 30 && (
-                  <div className="mt-2 text-xs text-amber-600">
-                    Low on minutes! <Link to="/pricing" className="underline">Upgrade</Link>
-                  </div>
-                )}
+                <p className="text-xs sm:text-sm text-gray-500">
+                  {conversationMinutes ? `${conversationMinutes.used}/${conversationMinutes.total} used` : 'No minutes available'}
+                </p>
               </CardContent>
             </Card>
           </motion.div>
         </div>
         
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.4 }}
-          className="mb-8"
-        >
-          <Link to="/setup">
-            <div className="group relative overflow-hidden rounded-xl">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-accent-600"></div>
-              
-              {/* Animated background patterns */}
-              <div className="absolute inset-0 opacity-20">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div 
-                    key={i} 
-                    className="absolute bg-white rounded-full"
-                    style={{
-                      width: Math.random() * 100 + 50,
-                      height: Math.random() * 100 + 50,
-                      top: `${Math.random() * 100}%`,
-                      left: `${Math.random() * 100}%`,
-                      opacity: Math.random() * 0.5 + 0.1,
-                    }}
-                  ></div>
-                ))}
-              </div>
-              
-              <div className="relative p-6 md:p-8 flex flex-col md:flex-row items-center justify-between">
-                <div>
-                  <Badge variant="default" className="bg-white/20 text-white border-none mb-3">Start Interview</Badge>
-                  <h3 className="text-xl md:text-2xl font-semibold mb-2 text-white">Ready for your next interview?</h3>
-                  <p className="text-white/90 max-w-lg">
-                    Set up a new interview simulation with our AI and prepare for success. 
-                    You have {conversationMinutes?.remaining || 0} minutes remaining.
-                  </p>
+        {/* Main Content */}
+        <div className="space-y-6 sm:space-y-8 lg:space-y-12">
+          {/* Interview Management */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.4 }}
+          >
+            <Card className="border border-white/40 dark:border-slate-700/60 shadow-responsive bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+              <CardHeader className="card-responsive-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-lg sm:text-xl lg:text-2xl">Interview Management</CardTitle>
+                    <CardDescription className="text-sm sm:text-base">
+                      Schedule and manage your interview practice sessions
+                    </CardDescription>
+                  </div>
+                  <div className="btn-gradient-border">
+                    <Button asChild className="btn-gradient">
+                      <Link to="/setup" className="gap-2 inline-flex items-center">
+                        <PlusCircle className="h-5 w-5" />
+                        <span className="hidden sm:inline">Schedule Interview</span>
+                        <span className="sm:hidden">Schedule</span>
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
-                <Button 
-                  variant="white" 
-                  size="lg" 
-                  className="mt-4 md:mt-0 font-medium bg-gradient-to-r from-blue-500 to-indigo-600  border-0 shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 hover:bg-blue-700 dark:hover:bg-blue-600"
-                >
-                  <span className="text-white">Schedule</span>
-                  <PlusCircle className="ml-2 h-4 w-4 text-white group-hover:rotate-90 transition-transform" />
-                </Button>
-              </div>
-            </div>
-          </Link>
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.5 }}
-        >
-          <Card className="overflow-hidden border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
-            <div className="border-b border-gray-200">
-              <div className="flex">
-                <button
-                  className={`px-6 py-4 font-medium text-sm ${
-                    activeTab === 'upcoming'
-                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 dark:border-blue-400'
-                      : 'text-gray-600 hover:text-blue-700 dark:text-gray-400 dark:hover:text-blue-400'
-                  }`}
-                  onClick={() => setActiveTab('upcoming')}
-                >
-                  Upcoming Interviews
-                </button>
-                <button
-                  className={`px-6 py-4 font-medium text-sm ${
-                    activeTab === 'completed'
-                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 dark:border-blue-400'
-                      : 'text-gray-600 hover:text-blue-700 dark:text-gray-400 dark:hover:text-blue-400'
-                  }`}
-                  onClick={() => setActiveTab('completed')}
-                >
-                  Completed Interviews
-                </button>
-              </div>
-            </div>
-            
-            <CardContent className="p-6">
-              {activeTab === 'upcoming' && (
-                <>
-                  {upcomingInterviews.length > 0 ? (
-                    <div className="space-y-4">
-                      {upcomingInterviews.map(interview => (
-                        <InterviewCard
-                          key={interview.id}
-                          interview={interview}
-                          onEdit={handleEditInterview}
-                          onCancel={handleCancelInterview}
-                          onDelete={(interview) => setDeleteDialog({ open: true, interview })}
-                          onRetryPrompt={handleRetryPrompt}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                        <Calendar className="h-8 w-8 text-gray-400" />
-                      </div>
-                      <p className="text-gray-500 mb-4">No upcoming interviews scheduled</p>
-                      <Button asChild className="hover:bg-blue-700 dark:hover:bg-blue-600">
-                        <Link to="/setup" className="gap-2 inline-flex items-center">
-                          <PlusCircle className="h-4 w-4" /> Schedule
-                        </Link>
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
+              </CardHeader>
               
-              {activeTab === 'completed' && (
-                <>
-                  {completedInterviews.length > 0 ? (
-                    <div className="space-y-4">
-                      {completedInterviews.map(interview => (
-                        <InterviewCard
-                          key={interview.id}
-                          interview={interview}
-                          onEdit={handleEditInterview}
-                          onCancel={handleCancelInterview}
-                          onDelete={(interview) => setDeleteDialog({ open: true, interview })}
-                          onRetryFeedback={handleRetryFeedback}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                        <CheckCircle className="h-8 w-8 text-gray-400" />
+              {/* Tab Navigation */}
+              <div className="px-4 sm:px-6 lg:px-8 pb-4">
+                <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                  <button
+                    onClick={() => setActiveTab('upcoming')}
+                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                      activeTab === 'upcoming'
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <span className="hidden sm:inline">Upcoming</span>
+                    <span className="sm:hidden">Up</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('completed')}
+                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                      activeTab === 'completed'
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <span className="hidden sm:inline">Completed</span>
+                    <span className="sm:hidden">Done</span>
+                  </button>
+                </div>
+              </div>
+              
+              <CardContent className="card-responsive-sm">
+                {activeTab === 'upcoming' && (
+                  <>
+                    {upcomingInterviews.length > 0 ? (
+                      <div className="max-h-96 overflow-y-auto pr-2 space-y-3 sm:space-y-4 scrollbar-interview-cards">
+                        {upcomingInterviews.map(interview => (
+                          <InterviewCard
+                            key={interview.id}
+                            interview={interview}
+                            onEdit={handleEditInterview}
+                            onCancel={handleCancelInterview}
+                            onDelete={(interview) => setDeleteDialog({ open: true, interview })}
+                            onRetryPrompt={handleRetryPrompt}
+                          />
+                        ))}
                       </div>
-                      <p className="text-gray-500 mb-4">No completed interviews yet</p>
-                      <Button asChild className="hover:bg-blue-700 dark:hover:bg-blue-600">
-                        <Link to="/setup" className="gap-2 inline-flex items-center">
-                          <PlusCircle className="h-4 w-4" /> Schedule
-                        </Link>
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
+                    ) : (
+                      <div className="text-center py-8 sm:py-12">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                          <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
+                        </div>
+                        <p className="text-gray-500 mb-4 text-sm sm:text-base">No upcoming interviews scheduled</p>
+                        <div className="btn-gradient-border">
+                          <Button asChild className="btn-gradient">
+                            <Link to="/setup" className="gap-2 inline-flex items-center">
+                              <PlusCircle className="h-5 w-5" />
+                              <span className="hidden sm:inline">Schedule Interview</span>
+                              <span className="sm:hidden">Schedule</span>
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                {activeTab === 'completed' && (
+                  <>
+                    {completedInterviews.length > 0 ? (
+                      <div className="max-h-96 overflow-y-auto pr-2 space-y-3 sm:space-y-4 scrollbar-interview-cards">
+                        {completedInterviews.map(interview => (
+                          <InterviewCard
+                            key={interview.id}
+                            interview={interview}
+                            onEdit={handleEditInterview}
+                            onCancel={handleCancelInterview}
+                            onDelete={(interview) => setDeleteDialog({ open: true, interview })}
+                            onRetryFeedback={handleRetryFeedback}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 sm:py-12">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                          <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
+                        </div>
+                        <p className="text-gray-500 mb-4 text-sm sm:text-base">No completed interviews yet</p>
+                        <div className="btn-gradient-border">
+                          <Button asChild className="btn-gradient">
+                            <Link to="/setup" className="gap-2 inline-flex items-center">
+                              <PlusCircle className="h-5 w-5" />
+                              <span className="hidden sm:inline">Schedule Interview</span>
+                              <span className="sm:hidden">Schedule</span>
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
           
           {/* Recent Activities and Tips */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <Card className="md:col-span-2 border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle>Recent Activities</CardTitle>
-                <CardDescription>Your recent interview activity</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivities.length > 0 ? (
-                    recentActivities.map((activity) => (
-                      <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg bg-blue-100 dark:bg-slate-800/80 hover:bg-blue-200 dark:hover:bg-slate-700 transition-colors">
-                        <div className={`w-8 h-8 rounded-full ${activity.iconBgColor} flex items-center justify-center`}>
-                          <div className={activity.iconColor}>
-                            {activity.icon}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+              className="lg:col-span-2"
+            >
+              <Card className="border border-white/40 dark:border-slate-700/60 shadow-responsive bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+                <CardHeader className="card-responsive-sm">
+                  <CardTitle className="text-lg sm:text-xl">Recent Activities</CardTitle>
+                  <CardDescription className="text-sm sm:text-base">Your recent interview activity</CardDescription>
+                </CardHeader>
+                <CardContent className="card-responsive-sm">
+                  <div className="space-y-3 sm:space-y-4">
+                    {recentActivities.length > 0 ? (
+                      recentActivities.map((activity) => (
+                        <div key={activity.id} className="flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-blue-100 dark:bg-slate-800/80 hover:bg-blue-200 dark:hover:bg-slate-700 transition-colors">
+                          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full ${activity.iconBgColor} flex items-center justify-center flex-shrink-0`}>
+                            <div className={activity.iconColor}>
+                              {activity.icon}
+                            </div>
                           </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm sm:text-base font-medium truncate">{activity.title}</p>
+                            <p className="text-xs sm:text-sm text-gray-500 truncate">
+                              {activity.description} • {formatDate(activity.date)}
+                            </p>
+                          </div>
+                          {activity.link && (
+                            <Link to={activity.link} className="text-primary-600 hover:text-primary-700 flex-shrink-0">
+                              <ChevronRight className="h-4 w-4" />
+                            </Link>
+                          )}
                         </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{activity.title}</p>
-                          <p className="text-xs text-gray-500">
-                            {activity.description} • {formatDate(activity.date)}
-                          </p>
-                        </div>
-                        {activity.link && (
-                          <Link to={activity.link} className="text-primary-600 hover:text-primary-700">
-                            <ChevronRight className="h-4 w-4" />
-                          </Link>
-                        )}
+                      ))
+                    ) : (
+                      <div className="text-center py-6 sm:py-8 text-gray-500">
+                        <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-2 sm:mb-3 text-gray-400" />
+                        <p className="text-sm sm:text-base">No recent activities yet</p>
+                        <p className="text-xs sm:text-sm mt-1">Schedule your first interview to get started</p>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-6 text-gray-500">
-                      <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                      <p>No recent activities yet</p>
-                      <p className="text-sm mt-1">Schedule your first interview to get started</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
             
-            <Card className="border border-white/40 dark:border-slate-700/60 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle>Interview Tips</CardTitle>
-                <CardDescription>Enhance your performance</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {interviewTips.slice(0, 3).map((tip, index) => (
-                    <div key={index} className={
-                      `p-3 rounded-lg border 
-                      ${index === 0 ? 'bg-blue-100 border-blue-200 dark:bg-blue-900/80 dark:border-blue-700/60' : ''}
-                      ${index === 1 ? 'bg-purple-100 border-purple-200 dark:bg-purple-900/80 dark:border-purple-700/60' : ''}
-                      ${index === 2 ? 'bg-green-100 border-green-200 dark:bg-green-900/80 dark:border-green-700/60' : ''}`
-                    }>
-                      <p className={
-                        `text-sm 
-                        ${index === 0 ? 'text-blue-800 dark:text-blue-200' : ''}
-                        ${index === 1 ? 'text-purple-800 dark:text-purple-200' : ''}
-                        ${index === 2 ? 'text-green-800 dark:text-green-200' : ''}`
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.6 }}
+            >
+              <Card className="border border-white/40 dark:border-slate-700/60 shadow-responsive bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
+                <CardHeader className="card-responsive-sm">
+                  <CardTitle className="text-lg sm:text-xl">Interview Tips</CardTitle>
+                  <CardDescription className="text-sm sm:text-base">Enhance your performance</CardDescription>
+                </CardHeader>
+                <CardContent className="card-responsive-sm">
+                  <div className="space-y-3 sm:space-y-4">
+                    {interviewTips.slice(0, 3).map((tip, index) => (
+                      <div key={index} className={
+                        `p-3 rounded-lg border 
+                        ${index === 0 ? 'bg-blue-100 border-blue-200 dark:bg-blue-900/80 dark:border-blue-700/60' : ''}
+                        ${index === 1 ? 'bg-purple-100 border-purple-200 dark:bg-purple-900/80 dark:border-purple-700/60' : ''}
+                        ${index === 2 ? 'bg-green-100 border-green-200 dark:bg-green-900/80 dark:border-green-700/60' : ''}`
                       }>
-                        <span className="font-medium block">{tip.title}</span>
-                        {tip.description}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                        <p className={
+                          `text-sm 
+                          ${index === 0 ? 'text-blue-800 dark:text-blue-200' : ''}
+                          ${index === 1 ? 'text-purple-800 dark:text-purple-200' : ''}
+                          ${index === 2 ? 'text-green-800 dark:text-green-200' : ''}`
+                        }>
+                          <span className="font-medium block">{tip.title}</span>
+                          {tip.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Delete Confirmation Dialog */}
@@ -964,6 +936,8 @@ const Dashboard: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {fetchError && <div className="text-red-500 text-center my-4">{fetchError}</div>}
     </div>
   );
 };
