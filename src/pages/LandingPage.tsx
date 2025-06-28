@@ -113,7 +113,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           {/* Hero Section */}
-          <section className="relative min-h-screen flex items-center justify-center pt-16 sm:pt-20">
+          <section className="relative min-h-screen flex items-center justify-center pt-14 sm:pt-16 lg:pt-20">
             <div className="container-custom mx-auto relative z-10">
               <div className="max-w-6xl mx-auto text-center">
                 <motion.div
