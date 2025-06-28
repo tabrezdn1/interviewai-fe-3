@@ -47,7 +47,7 @@ export const clearAuthTokens = async () => {
 }
 
 // Handle auth state changes and token errors
-supabase.auth.onAuthStateChange(async (event, session) => {
+supabase.auth.onAuthStateChange(async (event) => {
   if (event === 'TOKEN_REFRESHED') {
     console.log('🔄 supabase.ts: Token refreshed successfully')
   } else if (event === 'SIGNED_OUT') {
@@ -66,8 +66,8 @@ supabase.auth.refreshSession = async () => {
     const errorObj = error as { message?: string };
     console.error('🔄 supabase.ts: Error refreshing session:', errorObj);
     
-    if (error?.message?.includes('refresh_token_not_found') || 
-        error?.message?.includes('Invalid Refresh Token')) {
+    if (errorObj?.message?.includes('refresh_token_not_found') || 
+        errorObj?.message?.includes('Invalid Refresh Token')) {
       console.warn('🔄 supabase.ts: Invalid refresh token detected, clearing auth state')
       await clearAuthTokens()
       return { data: { session: null, user: null }, error: null }

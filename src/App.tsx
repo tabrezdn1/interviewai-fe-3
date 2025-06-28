@@ -33,7 +33,6 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  console.log('🔄 App: Rendering App component');
   return (
     <Router>
       <AuthProvider>

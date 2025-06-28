@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageSquare, Github, Mail } from 'lucide-react';
+import { Github, Mail } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/button';
@@ -152,9 +152,12 @@ const Login: React.FC = () => {
           <Card className="border border-white/40 dark:border-slate-700/60 shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
             <CardHeader className="text-center space-y-1 p-6 sm:p-8">
               <div className="flex justify-center mb-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                </div>
+                <img
+                  src="/interviewai-logo.png"
+                  alt="InterviewAI Logo"
+                  className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-full bg-primary/10"
+                  style={{ display: 'block' }}
+                />
               </div>
               <CardTitle className="text-xl sm:text-2xl font-bold">
                 {isSignUp ? 'Create your account' : 'Welcome back'}
@@ -252,24 +255,7 @@ const Login: React.FC = () => {
                     />
                   )}
                   
-                  <div className="relative my-4 sm:my-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t border-gray-300 dark:border-gray-600" />
-                    </div>
-                    <div className="relative flex justify-center text-xs sm:text-sm uppercase">
-                      <span className="bg-white dark:bg-slate-900 px-2 text-gray-500 dark:text-gray-400">
-                        Or
-                      </span>
-                    </div>
-                  </div>
                   
-                  <Button
-                    onClick={() => setFormMode('oauth')}
-                    variant="outline"
-                    className="w-full justify-center gap-3 h-11 sm:h-12"
-                  >
-                    <span className="text-sm sm:text-base">Continue with OAuth</span>
-                  </Button>
                 </div>
               )}
             </CardContent>

@@ -14,13 +14,6 @@ export interface UserProfile {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   
-  // Add logging to track when useAuth is called and what it returns
-  console.log('🔒 useAuth hook called', { 
-    isAuthenticated: context?.isAuthenticated, 
-    loading: context?.loading,
-    hasUser: !!context?.user
-  });
-  
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

@@ -211,15 +211,11 @@ const Navbar: React.FC = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={async () => {
-                        console.log('Desktop logout button clicked');
                         try {
-                          console.log('Calling logout function from Navbar dropdown');
                           await logout();
-                          console.log('Logout function completed successfully');
                         } catch (error) {
                           console.error('Logout failed:', error);
                           window.location.href = '/';
-                          console.log('Forcing redirect to home page after logout error');
                         }
                       }}
                     >

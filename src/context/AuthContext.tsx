@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { Session, User, Provider } from '@supabase/supabase-js';
+import { Session, Provider } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { generateGravatarUrl } from '../lib/utils.tsx';
 import { clearAuthTokens } from '../lib/supabase';
@@ -49,50 +49,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const getUserSession = async () => {
       setLoading(true);
-      setLoading(true);
+      
+      // Add timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        setUser(null);
+        setLoading(false);
+      }, 10000);
+      
       try {
-        console.log('🔑 AuthContext: Getting user session...');
         // Check active session
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        console.log('🔑 AuthContext: Session result:', { hasSession: !!session });
+        if (error) {
+          console.error('Error getting session:', error);
+          setUser(null);
+          setLoading(false);
+          clearTimeout(timeoutId);
+          return;
+        }
         
         if (session) {
-          console.log('🔑 AuthContext: Session found, handling session');
           await handleSession(session);
         } else {
-          console.log('🔑 AuthContext: No session found, setting user to null');
           setUser(null);
         }
         
-        console.log('🔑 AuthContext: Setting loading to false');
         setLoading(false);
+        clearTimeout(timeoutId);
         
         // Listen for auth state changes
         const { data: { subscription } } = await supabase.auth.onAuthStateChange(
-          async (event, session) => {  
-            console.log("Auth state change event:", event, "Has session:", !!session);
-
-            // Log specific SIGNED_OUT events for debugging
-            if (event === 'SIGNED_OUT') {
-              console.log('🔑 AuthContext: SIGNED_OUT event received, setting user to null');
-            }
-
-            // Log specific SIGNED_OUT events for debugging
-            if (event === 'SIGNED_OUT') {
-              console.log('🔑 AuthContext: SIGNED_OUT event received, setting user to null');
-            }
-
+          async (event, session) => {
             // Set loading to true for all auth state changes except TOKEN_REFRESHED
             if (event !== 'TOKEN_REFRESHED') {
               setLoading(true);
             }
 
             if (session) {
-              console.log('🔑 AuthContext: Auth state change with session, handling session');
               await handleSession(session);
             } else {
-              console.log('🔑 AuthContext: Auth state change without session, setting user to null');
               setUser(null);
             }
 
@@ -102,13 +97,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         );
         
         return () => {
-          console.log('🔑 AuthContext: Unsubscribing from auth state changes');
           subscription.unsubscribe();
+          clearTimeout(timeoutId);
         };
       } catch (error) {
         console.error('Error getting session:', error);
-        console.log('🔑 AuthContext: Error in getUserSession, setting loading to false');
+        setUser(null);
         setLoading(false);
+        clearTimeout(timeoutId);
       }
     };
     
@@ -117,16 +113,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   // Handles setting the user from a session
   const handleSession = async (session: Session) => {
-    console.log('🔑 AuthContext: Handling session');
     const supabaseUser = session.user;
     
-    if (!supabaseUser) return;
-    
-    console.log("Handling session for user:", supabaseUser);
+    if (!supabaseUser) {
+      setUser(null);
+      return;
+    }
     
     // Get profile data
     try {
-      console.log('🔑 AuthContext: Fetching profile data for user:', supabaseUser.id);
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -135,14 +130,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // If profile doesn't exist, create it
       if (error || !profile) {
-        console.log("🔑 AuthContext: Creating new profile for user:", supabaseUser.id);
         // Create new profile using user data from auth
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
           .insert({
             id: supabaseUser.id,
             name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
-            email_confirmed: false,
             subscription_tier: 'free',
             total_conversation_minutes: 25,
             used_conversation_minutes: 0
@@ -152,22 +145,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         if (createError) {
           console.error('Error creating profile:', createError);
-          console.log('🔑 AuthContext: Error creating profile');
+          setUser(null);
           return;
         }
         
-        console.log('🔑 AuthContext: Setting user from new profile');
         setUser({
           id: newProfile.id,
           name: newProfile.name,
           email: supabaseUser.email || '',
+          avatar: supabaseUser.user_metadata?.avatar_url || generateGravatarUrl(supabaseUser.email || ''),
           subscription_tier: newProfile.subscription_tier || 'free',
           total_conversation_minutes: newProfile.total_conversation_minutes || 25,
           used_conversation_minutes: newProfile.used_conversation_minutes || 0
         });
       } else {
         // Use existing profile
-        console.log('🔑 AuthContext: Setting user from existing profile');
         setUser({
           id: profile.id,
           name: profile.name,
@@ -180,7 +172,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-      console.log('🔑 AuthContext: Error in handleSession');
+      setUser(null);
     }
   };
 
@@ -208,7 +200,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Email confirmation required
         throw new Error('Please check your email and click the confirmation link to complete your registration.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error signing up:', error);
       // Preserve the original error object to maintain error codes
       throw error;
@@ -244,7 +236,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const currentOrigin = window.location.origin;
         const redirectUrl = options?.redirectTo || `${currentOrigin}/dashboard`;
         
-        const { data, error } = await supabase.auth.signInWithOAuth({
+        const { error } = await supabase.auth.signInWithOAuth({
           provider: providerEnum,
           options: {
             redirectTo: redirectUrl,
@@ -259,14 +251,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         // For OAuth, we don't set user here because it will be handled by the auth state change
         // after redirect back from the OAuth provider
-        console.log("OAuth redirect initiated:", data);
-        console.log("Redirect URL:", redirectUrl);
       } else {
         throw new Error('Invalid login method');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error logging in:', error);
-      throw new Error(error.error_description || error.message || 'Error during sign in');
+      const errorMessage = error instanceof Error ? error.message : 'Error during sign in';
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -274,13 +265,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async (): Promise<void> => {
     try {
-      console.log('Logout initiated...');
-      setLoading(true);
-      
-      // First clear any tokens from localStorage
-      await clearAuthTokens();
-      
-      // Then call signOut
       setLoading(true);
       
       // First clear any tokens from localStorage
@@ -290,11 +274,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      console.log('Supabase signOut successful');
       setUser(null);
       
       // Redirect to home page after logout
-      console.log('Redirecting to home page...');
       window.location.href = '/';
     } catch (error) {
       console.error('Error logging out:', error);
