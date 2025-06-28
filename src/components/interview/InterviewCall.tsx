@@ -17,9 +17,6 @@ interface InterviewCallProps {
   customGreeting?: string;
   tavusPersonaId?: string;
   conversationUrl?: string;
-  conversationalContext?: string;
-  customGreeting?: string;
-  tavusPersonaId?: string;
   onCallEnd: () => void;
   onError: (error: string) => void;
   className?: string;
@@ -53,9 +50,6 @@ const InterviewCall: React.FC<InterviewCallProps> = ({
     participantName,
     role,
     company,
-   conversationalContext,
-   customGreeting,
-   tavusPersonaId,
     conversationalContext,
     customGreeting,
     tavusPersonaId,
