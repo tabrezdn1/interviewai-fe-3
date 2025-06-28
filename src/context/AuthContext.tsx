@@ -85,12 +85,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               console.log('🔑 AuthContext: SIGNED_OUT event received, setting user to null');
             }
 
-            // Only set loading to true for sign-in and sign-up events
-            // This prevents unnecessary loading states when just navigating between pages
-            const shouldShowLoading = ['SIGNED_IN', 'SIGNED_UP'].includes(event) && !session;
-            if (shouldShowLoading && authInitialized) {
-              setLoading(true);
-            }
 
             if (session) {
               console.log('🔑 AuthContext: Auth state change with session, handling session');
