@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 import LandingPage from './pages/LandingPage';
@@ -15,6 +15,14 @@ import Billing from './pages/Billing';
 
 import AuthProvider from './context/AuthContext';
 import AuthenticatedLayout from './components/layout/AuthenticatedLayout';
+import { useAuth } from './hooks/useAuth';
+
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return null; // Optionally, show a spinner here
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+}
 
 function App() {
   // Add keyboard shortcut to toggle debug panel visibility
@@ -43,7 +51,11 @@ function App() {
             transition={{ duration: 0.2 }}
           >
             <Routes>
-              <Route path="/" element={<LandingPage />} />
+              <Route path="/" element={
+                <PublicRoute>
+                  <LandingPage />
+                </PublicRoute>
+              } />
               <Route path="/login" element={<Login />} />
               <Route 
                 path="/settings" 

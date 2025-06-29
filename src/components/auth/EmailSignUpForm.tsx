@@ -5,10 +5,9 @@ import { Button } from '../ui/button';
 interface EmailSignUpFormProps {
   onSubmit: (data: { email: string; password: string; name: string }) => Promise<void>;
   isLoading: boolean;
-  onCancel: () => void;
 }
 
-const EmailSignUpForm: React.FC<EmailSignUpFormProps> = ({ onSubmit, isLoading, onCancel }) => {
+const EmailSignUpForm: React.FC<EmailSignUpFormProps> = ({ onSubmit, isLoading }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -137,16 +136,6 @@ const EmailSignUpForm: React.FC<EmailSignUpFormProps> = ({ onSubmit, isLoading, 
               <span>Creating account...</span>
             </div>
           ) : 'Create account'}
-        </Button>
-        
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={onCancel}
-          disabled={isLoading}
-        >
-          Back
         </Button>
       </div>
     </form>

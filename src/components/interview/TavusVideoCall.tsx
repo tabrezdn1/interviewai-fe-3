@@ -41,7 +41,7 @@ const AIInterviewerVideo: React.FC<{ id: string }> = ({ id }) => {
       <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 rounded-lg px-3 py-2">
         <div className="flex items-center gap-2 text-white">
           <Users className="h-4 w-4" />
-          <span className="text-sm font-medium">AI Interviewer</span>
+          <span className="text-sm font-medium">Interview AI</span>
           <Badge variant="outline" className="text-xs border-green-400 text-green-400">
             Live
           </Badge>
