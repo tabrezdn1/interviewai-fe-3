@@ -231,8 +231,12 @@ const InterviewSetup: React.FC = () => {
   
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <video src="/loading.webm" autoPlay loop muted playsInline className="w-20 h-20 object-contain" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <video src="/loading.webm" autoPlay loop muted playsInline className="w-20 h-20 object-contain mb-4 mx-auto" />
+          <h3 className="text-lg font-medium mb-2">Setting up interview...</h3>
+          <p className="text-muted-foreground">Please wait while we prepare your session</p>
+        </div>
       </div>
     );
   }

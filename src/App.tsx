@@ -45,6 +45,8 @@ function App() {
     <Router>
       <AuthProvider>
         <div className="min-h-screen bg-background text-foreground font-sans relative">
+          {/* Always-present dark background to prevent any white flashes */}
+          <div className="fixed inset-0 bg-white dark:bg-black -z-10" />
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
