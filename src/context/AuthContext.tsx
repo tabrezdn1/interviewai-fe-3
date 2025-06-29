@@ -46,71 +46,59 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const isAuthenticated = !!user;
 
   // Initialize user session on load
   useEffect(() => {
-    const getUserSession = async () => {
-      setLoading(true);
-      
-      // Add timeout to prevent infinite loading
-      const timeoutId = setTimeout(() => {
-        setUser(null);
-        setLoading(false);
-      }, 10000);
-      
+    const initializeAuth = async () => {
       try {
-        // Check active session
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          setUser(null);
-          setLoading(false);
-          clearTimeout(timeoutId);
-          return;
-        }
+        const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
+          setCurrentSessionId(session.access_token);
           await handleSession(session);
-        } else {
-          setUser(null);
         }
         
-        setLoading(false);
-        clearTimeout(timeoutId);
-        
-        // Listen for auth state changes
-        const { data: { subscription } } = await supabase.auth.onAuthStateChange(
+        // Set up auth state listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            // Set loading to true for all auth state changes except TOKEN_REFRESHED
-            if (event !== 'TOKEN_REFRESHED') {
-              setLoading(true);
-            }
-
             if (session) {
+              // Skip processing if we're in the middle of a manual login
+              if (isLoggingIn) {
+                return;
+              }
+              
+              // Check if this is the same session we already processed
+              if (currentSessionId === session.access_token) {
+                return;
+              }
+              
+              setCurrentSessionId(session.access_token);
               await handleSession(session);
             } else {
+              // User signed out
+              setCurrentSessionId(null);
               setUser(null);
             }
-
-            // Always set loading to false after handling auth state change
-            setLoading(false);
           }
         );
         
+        setLoading(false);
+        
         return () => {
           subscription.unsubscribe();
-          clearTimeout(timeoutId);
         };
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error('[AuthContext] Error initializing auth:', error);
         setUser(null);
         setLoading(false);
-        clearTimeout(timeoutId);
       }
     };
     
-    getUserSession();
+    initializeAuth();
   }, []);
   
   // Handles setting the user from a session
@@ -122,17 +110,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
     
-    // Get profile data
     try {
+      // Get profile data
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', supabaseUser.id)
         .single();
       
+      let userProfile;
+      
       // If profile doesn't exist, create it
       if (error || !profile) {
-        // Create new profile using user data from auth
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
           .insert({
@@ -146,12 +135,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           .single();
         
         if (createError) {
-          console.error('Error creating profile:', createError);
           setUser(null);
           return;
         }
         
-        setUser({
+        userProfile = {
           id: newProfile.id,
           name: newProfile.name,
           email: supabaseUser.email || '',
@@ -159,10 +147,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           subscription_tier: newProfile.subscription_tier || 'free',
           total_conversation_minutes: newProfile.total_conversation_minutes || 25,
           used_conversation_minutes: newProfile.used_conversation_minutes || 0
-        });
+        };
       } else {
         // Use existing profile
-        setUser({
+        userProfile = {
           id: profile.id,
           name: profile.name,
           email: supabaseUser.email || '',
@@ -170,10 +158,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           subscription_tier: profile.subscription_tier || 'free',
           total_conversation_minutes: profile.total_conversation_minutes || 25,
           used_conversation_minutes: profile.used_conversation_minutes || 0
-        });
+        };
       }
+      
+      setUser(userProfile);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('[AuthContext] Error handling session:', error);
       setUser(null);
     }
   };
@@ -196,15 +186,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) throw error;
       
       if (data.user && data.session) {
-        // User is automatically signed in after signup
         await handleSession(data.session);
       } else if (data.user && !data.session) {
         // Email confirmation required
         throw new Error('Please check your email and click the confirmation link to complete your registration.');
       }
     } catch (error: unknown) {
-      console.error('Error signing up:', error);
-      // Preserve the original error object to maintain error codes
+      console.error('[AuthContext] Signup error:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -218,8 +206,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<void> => {
     setLoading(true);
     
+    // Clear any previous session tracking to allow fresh login
+    setCurrentSessionId(null);
+    
     try {
       if (provider === 'email' && credentials) {
+        // Set flag to prevent auth state change interference
+        setIsLoggingIn(true);
+        
         const { data, error } = await supabase.auth.signInWithPassword({
           email: credentials.email,
           password: credentials.password,
@@ -228,13 +222,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (error) throw error;
         
         if (data.session) {
+          // Set the session ID immediately to prevent duplicate processing
+          setCurrentSessionId(data.session.access_token);
           await handleSession(data.session);
+        } else {
+          throw new Error('No session returned from login');
         }
       } else if (['google', 'github'].includes(provider)) {
-        // For OAuth providers, we need to use signInWithOAuth
+        // For OAuth providers
         const providerEnum = provider as Provider;
-        
-        // Get the current origin for redirect
         const currentOrigin = window.location.origin;
         const redirectUrl = options?.redirectTo || `${currentOrigin}/dashboard`;
         
@@ -243,49 +239,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           options: {
             redirectTo: redirectUrl,
             queryParams: {
-              // Optional additional parameters
-              prompt: 'select_account', // Force account selection (Google)
+              prompt: 'select_account',
             }
           }
         });
         
         if (error) throw error;
         
-        // For OAuth, we don't set user here because it will be handled by the auth state change
-        // after redirect back from the OAuth provider
+        // For OAuth, the redirect will happen automatically
+        // Don't set loading to false here since we're redirecting
+        return;
       } else {
         throw new Error('Invalid login method');
       }
     } catch (error: unknown) {
-      console.error('Error logging in:', error);
+      console.error('[AuthContext] Login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error during sign in';
       throw new Error(errorMessage);
     } finally {
-      setLoading(false);
+      // Clear the login flag
+      setIsLoggingIn(false);
+      
+      // Only set loading to false for email login, OAuth will redirect
+      if (provider === 'email') {
+        setLoading(false);
+      }
     }
   };
 
   const logout = async (): Promise<void> => {
+    // Clear user state immediately for instant UI feedback
+    setUser(null);
+    setCurrentSessionId(null);
+    
     try {
-      setLoading(true);
-      
-      // First clear any tokens from localStorage
+      // Clear any stored auth tokens
       await clearAuthTokens();
-      
-      // Then call signOut
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      setUser(null);
-      
-      // Redirect to home page after logout
-      window.location.href = '/';
     } catch (error) {
-      console.error('Error logging out:', error);
-      // Even if there's an error, clear the user state and redirect
-      setUser(null);
-      window.location.href = '/';
+      // Don't let logout fail if token clearing fails
+      console.error('Error during logout cleanup:', error);
     }
+    
+    // Always redirect to home page after logout, regardless of cleanup success
+    window.location.href = '/';
   };
 
   const updateUser = (updates: Partial<UserProfile>): void => {
@@ -305,7 +301,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     logout,
     updateUser,
-    isAuthenticated: !!user,
+    isAuthenticated,
   };
 
   return (

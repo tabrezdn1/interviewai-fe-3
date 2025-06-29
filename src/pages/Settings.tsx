@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   User, Shield, 
@@ -20,9 +20,6 @@ const Settings: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false);
-  const userRef = useRef(user);
   
   const [formData, setFormData] = useState({
     profile: {
@@ -36,62 +33,26 @@ const Settings: React.FC = () => {
     }
   });
 
-  // Keep track of the last known user to prevent black screen during auth state changes
-  useEffect(() => {
-    if (user) {
-      userRef.current = user;
-    }
-  }, [user]);
-
+  // Load settings when user is available
   useEffect(() => {
     const loadSettings = async () => {
-      // Use the most recent user data available
-      const currentUser = user || userRef.current;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+
+      setLoading(true);
+      setError(null);
       
-      if (currentUser && !settingsLoaded && !hasInitialized) {
-        setLoading(true);
-        setError(null);
-        setHasInitialized(true);
+      try {
+        const settings = await getProfileSettings(user.id);
         
-        try {
-          const settings = await getProfileSettings(currentUser.id);
-          
-          if (settings) {
-            setFormData({
-              profile: {
-                name: settings.profile.name,
-                email: settings.profile.email || currentUser.email,
-              },
-              security: {
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: '',
-              }
-            });
-            setSettingsLoaded(true);
-          } else {
-            // Fallback to user data if settings load fails
-            setFormData({
-              profile: {
-                name: currentUser.name || '',
-                email: currentUser.email || '',
-              },
-              security: {
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: '',
-              }
-            });
-            setSettingsLoaded(true);
-          }
-        } catch (error) {
-          console.error('Error loading settings:', error);
-          setError('Failed to load settings. Please try again.');
-          // Fallback to user data
+        if (settings) {
           setFormData({
             profile: {
-              name: currentUser.name || '',
-              email: currentUser.email || '',
+              name: settings.profile.name,
+              email: settings.profile.email || user.email,
             },
             security: {
               currentPassword: '',
@@ -99,20 +60,42 @@ const Settings: React.FC = () => {
               confirmPassword: '',
             }
           });
-          setSettingsLoaded(true);
-        } finally {
-          setLoading(false);
+        } else {
+          // Fallback to user data if settings load fails
+          setFormData({
+            profile: {
+              name: user.name || '',
+              email: user.email || '',
+            },
+            security: {
+              currentPassword: '',
+              newPassword: '',
+              confirmPassword: '',
+            }
+          });
         }
-      } else if (!currentUser && !hasInitialized) {
-        setLoading(false);
-        setHasInitialized(true);
-      } else if (hasInitialized) {
+      } catch {
+
+        setError('Failed to load settings. Using default values.');
+        // Fallback to user data
+        setFormData({
+          profile: {
+            name: user.name || '',
+            email: user.email || '',
+          },
+          security: {
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: '',
+          }
+        });
+      } finally {
         setLoading(false);
       }
     };
     
     loadSettings();
-  }, [user, settingsLoaded, hasInitialized]);
+  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -136,23 +119,22 @@ const Settings: React.FC = () => {
   };
 
   const handleSaveProfile = async () => {
-    const currentUser = user || userRef.current;
-    if (!currentUser) return;
+    if (!user) return;
     
+
     setSaving(true);
     setError(null);
     setSuccess(null);
     
     try {
-      // Only update the name field directly in the database
-      // This avoids triggering auth state changes
+      // Update the name field directly in the database
       const { data, error } = await supabase
         .from('profiles')
         .update({ 
           name: formData.profile.name,
           updated_at: new Date().toISOString()
         })
-        .eq('id', currentUser.id)
+        .eq('id', user.id)
         .select()
         .single();
       
@@ -163,19 +145,18 @@ const Settings: React.FC = () => {
       if (data) {
         setSuccess('Profile updated successfully');
         
-        // Update the AuthContext user state so other components see the change
+        // Update the AuthContext user state
         updateUser({ name: formData.profile.name });
         
         // Clear success message after 3 seconds
         setTimeout(() => {
           setSuccess(null);
         }, 3000);
-        // Don't reload settings - just keep the current state
       } else {
         throw new Error('Failed to update profile');
       }
-    } catch (error) {
-      console.error('Error saving profile:', error);
+    } catch {
+
       setError('Failed to update profile. Please try again.');
     } finally {
       setSaving(false);
@@ -183,9 +164,9 @@ const Settings: React.FC = () => {
   };
 
   const handleChangePassword = async () => {
-    const currentUser = user || userRef.current;
-    if (!currentUser) return;
+    if (!user) return;
     
+    console.log('[Settings] Changing password');
     setSaving(true);
     setError(null);
     setSuccess(null);
@@ -198,61 +179,77 @@ const Settings: React.FC = () => {
       
       // Verify current password by attempting to sign in
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: currentUser.email || '',
-        password: formData.security.currentPassword
+        email: user.email,
+        password: formData.security.currentPassword,
       });
       
       if (signInError) {
         throw new Error('Current password is incorrect');
       }
       
-      // Validate new passwords
+      // Validate new password
+      if (formData.security.newPassword.length < 6) {
+        throw new Error('New password must be at least 6 characters long');
+      }
+      
       if (formData.security.newPassword !== formData.security.confirmPassword) {
         throw new Error('New passwords do not match');
       }
       
-      if (formData.security.newPassword.length < 6) {
-        throw new Error('Password must be at least 6 characters long');
-      }
-      
-      // Update password using Supabase Auth
-      const { error } = await supabase.auth.updateUser({
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
         password: formData.security.newPassword
       });
       
-      if (error) throw error;
+      if (updateError) {
+        throw updateError;
+      }
       
       setSuccess('Password updated successfully');
       
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSuccess(null);
-      }, 3000);
-      
-      // Clear password fields
+      // Clear form
       setFormData(prev => ({
         ...prev,
         security: {
           currentPassword: '',
           newPassword: '',
-          confirmPassword: ''
+          confirmPassword: '',
         }
       }));
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccess(null);
+      }, 3000);
     } catch (error) {
-      console.error('Error changing password:', error);
-      setError(error instanceof Error ? error.message : 'Failed to update password');
+      console.error('[Settings] Error changing password:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to change password. Please try again.';
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
   };
+
+
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'security', label: 'Security', icon: Shield },
   ];
 
-  // Show loading state only when initially loading and not yet initialized
-  if (loading && !hasInitialized) {
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    console.log('[Settings] Loading settings data');
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="text-center">
@@ -263,21 +260,7 @@ const Settings: React.FC = () => {
     );
   }
 
-  // Show error state if no user at all
-  if (!user && !userRef.current) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
-          <p className="text-gray-600 dark:text-gray-400">Please log in to access settings.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Use the most recent user data available
-  const currentUser = user || userRef.current;
+  console.log('[Settings] Rendering settings page for user:', user.email);
 
   return (
     <>
@@ -289,7 +272,7 @@ const Settings: React.FC = () => {
         className="mb-8"
       >
         <h1 className="text-3xl font-bold mb-2">Settings</h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           Manage your account settings and preferences
         </p>
       </motion.div>
@@ -348,7 +331,7 @@ const Settings: React.FC = () => {
                   )}
                   
                   {success && (
-                    <Alert variant="success" className="mt-4">
+                    <Alert className="mt-4 border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
                       <Check className="h-4 w-4" />
                       <AlertDescription>{success}</AlertDescription>
                     </Alert>
@@ -356,7 +339,7 @@ const Settings: React.FC = () => {
 
                   <div className="flex items-center gap-6">
                     <div className="h-20 w-20 rounded-full bg-primary-100 dark:bg-blue-900 flex items-center justify-center text-primary-700 dark:text-blue-300 text-3xl font-medium">
-                      {formData.profile.name?.charAt(0).toUpperCase() || currentUser?.name?.charAt(0).toUpperCase() || 'U'}
+                      {formData.profile.name?.charAt(0).toUpperCase() || user?.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   </div>
 
@@ -465,7 +448,7 @@ const Settings: React.FC = () => {
                   )}
                   
                   {success && (
-                    <Alert variant="success" className="mt-4">
+                    <Alert className="mt-4 border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
                       <Check className="h-4 w-4" />
                       <AlertDescription>{success}</AlertDescription>
                     </Alert>
@@ -474,7 +457,7 @@ const Settings: React.FC = () => {
                   <div className="flex justify-end">
                     <Button 
                       onClick={handleChangePassword}
-                      disabled={saving || !formData.security.currentPassword || !formData.security.newPassword || !formData.security.confirmPassword || formData.security.newPassword !== formData.security.confirmPassword}
+                      disabled={saving || !formData.security.currentPassword || !formData.security.newPassword || !formData.security.confirmPassword}
                     >
                       <Save className="h-4 w-4 mr-2" />
                       {saving ? 'Updating...' : 'Update Password'}
