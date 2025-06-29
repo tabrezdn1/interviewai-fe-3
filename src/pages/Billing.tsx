@@ -189,6 +189,31 @@ const Billing: React.FC = () => {
     }
   ];
 
+  // Show loading screen while data is loading
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <video src="/loading.webm" autoPlay loop muted playsInline className="w-20 h-20 object-contain mb-4 mx-auto" />
+          <h3 className="text-lg font-medium mb-2">Loading billing information...</h3>
+          <p className="text-muted-foreground">Please wait while we fetch your billing details</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if no user (should be handled by ProtectedRoute but adding as safety)
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h3 className="text-lg font-medium mb-2">Authentication required</h3>
+          <p className="text-muted-foreground">Please log in to view your billing information</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Breadcrumb />
