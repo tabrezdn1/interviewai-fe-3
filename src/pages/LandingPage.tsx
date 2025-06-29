@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -35,6 +35,8 @@ const LandingPage: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(false);
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 300], [0, 100]);
+  const [showDemoVideo, setShowDemoVideo] = useState(false);
+  const demoVideoRef = useRef<HTMLVideoElement>(null);
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -161,8 +163,7 @@ const LandingPage: React.FC = () => {
                     transition={{ delay: 0.6, duration: 0.8 }}
                     className="text-lg sm:text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-8 sm:mb-12 max-w-4xl mx-auto leading-relaxed px-4"
                   >
-                    Experience the future of interview preparation with AI-powered video simulations. 
-                    Practice with lifelike AI interviewers and get instant, personalized feedback.
+                    Unlock your full potential with AI-powered interview prep. Discover how InterviewAI can boost your confidence, sharpen your skills, and help you land your dream job.
                   </motion.p>
 
                   {/* CTA Buttons */}
@@ -191,11 +192,11 @@ const LandingPage: React.FC = () => {
                       whileTap={{ scale: 0.95 }}
                       className="w-full sm:w-auto"
                     >
-                      <Button asChild variant="outline" size="lg" className="group border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto">
-                        <Link to="#features">
+                      <Button asChild variant="outline" size="lg" className="group border-2 border-slate-300 dark:border-slate-600 hover:border-blue-700 dark:hover:border-purple-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-slate-700 dark:text-slate-300 hover:text-blue-900 dark:hover:text-purple-200 transition-all duration-300 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto">
+                        <a href="#demo" onClick={e => { e.preventDefault(); document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' }); }}>
                           <Video className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
-                          See How It Works
-                        </Link>
+                          See InterviewAI in Action
+                        </a>
                       </Button>
                     </motion.div>
                   </motion.div>
@@ -335,13 +336,12 @@ const LandingPage: React.FC = () => {
                 className="text-center mb-12 sm:mb-16"
               >
                 <h2 className="heading-responsive font-bold mb-4 sm:mb-6 bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                  See It In Action
+                  Experience the Future of Interview Prep
                 </h2>
                 <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto px-4">
-                  Watch how our AI interviewers provide realistic, engaging interview experiences
+                  Watch our short promo to see how InterviewAI empowers you to practice, improve, and succeed—anytime, anywhere. Get inspired to take your interview skills to the next level!
                 </p>
               </motion.div>
-              
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -349,13 +349,46 @@ const LandingPage: React.FC = () => {
                 transition={{ duration: 0.6 }}
                 className="max-w-4xl mx-auto px-4"
               >
-                <div className="relative rounded-responsive overflow-hidden shadow-responsive-lg border border-white/20 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                  <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center">
-                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl shadow-xl">
-                      <Play className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                      Watch Demo Video
-                    </Button>
-                  </div>
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20 dark:border-slate-700/50 bg-gradient-to-br from-slate-900/80 to-slate-800/80 dark:from-slate-800/90 dark:to-slate-900/90 backdrop-blur-md aspect-video flex items-center justify-center">
+                  {!showDemoVideo && (
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => {
+                        setShowDemoVideo(true);
+                        setTimeout(() => {
+                          demoVideoRef.current?.play();
+                        }, 100);
+                      }}
+                      className="absolute inset-0 flex flex-col items-center justify-center z-10 w-full h-full bg-black/60 hover:bg-black/70 transition-colors duration-300 cursor-pointer"
+                      style={{ backdropFilter: 'blur(2px)' }}
+                    >
+                      <span className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg sm:text-2xl font-semibold px-8 py-4 rounded-full shadow-xl border-2 border-white/10 hover:scale-105 transition-transform">
+                        <Play className="h-7 w-7" />
+                        Watch Promo Video
+                      </span>
+                    </motion.button>
+                  )}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: showDemoVideo ? 1 : 0 }}
+                    transition={{ duration: 0.5 }}
+                    className={showDemoVideo ? 'w-full h-full' : 'hidden'}
+                    style={{ position: 'absolute', inset: 0 }}
+                  >
+                    <video
+                      ref={demoVideoRef}
+                      className="w-full h-full object-cover rounded-2xl border-none outline-none bg-black"
+                      controls
+                      preload="none"
+                      poster="/demo-poster.jpg"
+                      style={{ boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)' }}
+                    >
+                      <source src="/demo.mp4" type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </motion.div>
                 </div>
               </motion.div>
             </div>
@@ -559,15 +592,6 @@ const LandingPage: React.FC = () => {
                   </ul>
                 </div>
                 
-                <div>
-                  <h3 className="font-medium text-lg mb-4 text-slate-900 dark:text-white">Company</h3>
-                  <ul className="space-y-3">
-                    <li><a href="#about" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">About</a></li>
-                    <li><a href="#" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">Blog</a></li>
-                    <li><a href="#" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">Careers</a></li>
-                    <li><a href="#" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">Contact</a></li>
-                  </ul>
-                </div>
                 <div className="col-span-1 md:col-span-1">
                   <Link to="/" className="text-2xl font-bold flex items-center gap-2 mb-4 text-slate-900 dark:text-white">
                     <MessageSquare className="h-6 w-6 text-blue-600 dark:text-blue-400" />

@@ -81,7 +81,13 @@ const Navbar: React.FC = () => {
           <Link 
             to="/" 
             className="text-xl sm:text-2xl font-bold flex items-center gap-2 transition-colors"
-            onClick={closeMenu}
+            onClick={(e) => {
+              if (isHome) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+              closeMenu();
+            }}
           >
             {/* Brand Logo */}
             <img
