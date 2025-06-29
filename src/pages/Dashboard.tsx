@@ -548,7 +548,7 @@ const Dashboard: React.FC = () => {
         >
           <Card className="card-responsive border border-white/40 dark:border-slate-700/60 shadow-responsive bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl hover-responsive">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm sm:text-base font-medium">Conversation Minutes</CardTitle>
+              <CardTitle className="text-sm sm:text-base font-medium">Remaining Minutes</CardTitle>
               <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-accent-600" />
             </CardHeader>
             <CardContent>

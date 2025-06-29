@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
-  Clock, X, AlertCircle, PauseCircle, PlayCircle, Settings
+  AlertCircle, PauseCircle, PlayCircle
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { getInterview, startFeedbackProcessing, completeInterview } from '../services/InterviewService';
 import { useMediaAccess } from '../hooks/useMediaAccess';
 import VideoInterviewSetup from '../components/interview/VideoInterviewSetup';
@@ -50,22 +49,15 @@ const InterviewSessionContent: React.FC = () => {
   
   const [loading, setLoading] = useState(true);
   const [interviewData, setInterviewData] = useState<InterviewData | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showVideoSetup, setShowVideoSetup] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(1200); // 20 minutes in seconds
   const [showEndCallConfirm, setShowEndCallConfirm] = useState(false);
-  const [responses, setResponses] = useState<Record<number, string>>({});
-  const [showSettings, setShowSettings] = useState(false);
-  const [isEndingCall, setIsEndingCall] = useState(false);
   const [callActive, setCallActive] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   
   // Media access for user video/audio
   const {
-    conversation,
-    isLoading: tavusLoading,
-    error: tavusError
+    conversation
   } = useTavusConversation({
     interviewType: interviewData?.interview_types?.type || 'technical',
     participantName: 'Candidate',
@@ -91,13 +83,6 @@ const InterviewSessionContent: React.FC = () => {
     if (error.includes('demo mode')) {
       console.log('Using demo mode, continuing with mock interview');
     }
-  };
-
-  // Format time as MM:SS
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
   
   // Load interview data
@@ -145,8 +130,9 @@ const InterviewSessionContent: React.FC = () => {
   const handleCompleteInterview = async (actualMinutesUsed?: number) => {
     try {
       if (id && interviewData) {
-        // Calculate actual time elapsed in seconds
-        const timeElapsed = (interviewData.duration || 20) * 60 - timeRemaining;
+        // Calculate actual time elapsed in seconds, always counting overage if timeRemaining is negative
+        const totalDuration = (interviewData.duration || 20) * 60;
+        const timeElapsed = totalDuration - Math.max(timeRemaining, 0);
         
         // Convert to minutes (rounded up)
         const minutesUsed = actualMinutesUsed || Math.ceil(timeElapsed / 60);
@@ -194,18 +180,7 @@ const InterviewSessionContent: React.FC = () => {
         // Prepare mock feedback data
         const feedbackData = {
           overallScore: Math.floor(Math.random() * 30) + 70,
-          questions: Object.entries(responses).map(([qIndex, response]) => {
-            const questionIndex = Number(qIndex);
-            const question = interviewData.questions[questionIndex];
-            return {
-              id: question.id,
-              text: question.text,
-              answer: response,
-              score: Math.floor(Math.random() * 30) + 70,
-              analysis: "The candidate showed good understanding of the topic.",
-              feedback: "Consider providing more concrete examples next time."
-            };
-          }),
+          questions: [],
           feedback: {
             summary: "Overall good performance with room for improvement in specific areas.",
             overallScore: Math.floor(Math.random() * 30) + 70,
@@ -246,39 +221,17 @@ const InterviewSessionContent: React.FC = () => {
     setIsPaused(!isPaused);
   };
   
-  const confirmExit = async () => {
-    // Calculate actual minutes used when exiting early
-    const timeElapsed = Math.ceil(((interviewData?.duration || 20) * 60 - timeRemaining) / 60);
-    
-    // Cleanup media streams
-    cleanupMedia();
-    
-    // Update conversation minutes with actual usage
-    if (user && timeElapsed > 0) {
-      try {
-        await updateConversationMinutes(user.id, timeElapsed);
-      } catch (error) {
-        console.error('Failed to update conversation minutes on exit:', error);
-      }
-    }
-    
-    navigate('/dashboard');
-  };
-
-  const handleCallEnd = async () => {
-    // Show confirmation dialog
-    setShowEndCallConfirm(true);
-  };
-
   const confirmEndCall = async () => {
     try {
       console.log('🎯 InterviewSession: confirmEndCall - Starting interview completion process');
       // Close the confirmation dialog first
       setShowEndCallConfirm(false);
       
-      // Calculate actual minutes used (time elapsed)
-      const timeElapsed = Math.ceil(((interviewData?.duration || 20) * 60 - timeRemaining) / 60);
-      console.log('🎯 InterviewSession: confirmEndCall - Time elapsed:', timeElapsed, 'minutes');
+      // Calculate actual minutes used (time elapsed), always counting overage if timeRemaining is negative
+      const totalDuration = (interviewData?.duration || 20) * 60;
+      const timeElapsed = totalDuration - Math.max(timeRemaining, 0);
+      const minutesUsed = Math.ceil(timeElapsed / 60);
+      console.log('🎯 InterviewSession: confirmEndCall - Minutes used:', minutesUsed, 'Time elapsed (seconds):', timeElapsed);
       
       
       // Set call as inactive to stop the video component
@@ -308,7 +261,6 @@ const InterviewSessionContent: React.FC = () => {
       }, 1000);
       
     } catch (error) {
-      setIsEndingCall(false);
       setShowEndCallConfirm(false);
       
       console.error('Error ending call:', error);
@@ -351,11 +303,11 @@ const InterviewSessionContent: React.FC = () => {
           <VideoInterviewSetup
             interviewType={interviewData.interview_types?.type || 'technical'}
             participantName="Candidate"
-            role={interviewData.role}
-            company={interviewData.company || undefined}
-            llmGeneratedContext={interviewData.llm_generated_context}
-            llmGeneratedGreeting={interviewData.llm_generated_greeting}
-            tavusPersonaId={interviewData.tavus_persona_id}
+            role={interviewData.role || ''}
+            company={interviewData.company || ''}
+            llmGeneratedContext={interviewData.llm_generated_context || ''}
+            llmGeneratedGreeting={interviewData.llm_generated_greeting || ''}
+            tavusPersonaId={interviewData.tavus_persona_id || ''}
             onSetupComplete={handleVideoSetupComplete}
             onError={handleVideoError}
           />
@@ -376,14 +328,14 @@ const InterviewSessionContent: React.FC = () => {
             <InterviewCall
               interviewType={interviewData.interview_types?.type || 'technical'}
               participantName="Candidate"
-              role={interviewData.role}
-              company={interviewData.company || undefined}
+              role={interviewData.role || ''}
+              company={interviewData.company || ''}
               timeRemaining={timeRemaining}
               totalDuration={(interviewData.duration ?? 20) * 60}
-              conversationalContext={interviewData.llm_generated_context}
-              customGreeting={interviewData.llm_generated_greeting}
-              tavusPersonaId={interviewData.tavus_persona_id}
-              conversationUrl={interviewData.tavus_conversation_url}
+              conversationalContext={interviewData.llm_generated_context || ''}
+              customGreeting={interviewData.llm_generated_greeting || ''}
+              tavusPersonaId={interviewData.tavus_persona_id || ''}
+              conversationUrl={interviewData.tavus_conversation_url || ''}
               onCallEnd={() => setShowEndCallConfirm(true)}
               onError={handleVideoError}
               className="w-full h-full"
@@ -421,51 +373,20 @@ const InterviewSessionContent: React.FC = () => {
           >
             <h3 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 dark:text-white">End Interview?</h3>
             <p className="text-gray-700 dark:text-gray-300 mb-6 sm:mb-8 text-sm sm:text-base leading-relaxed">
-              Are you sure you want to end this interview? This will complete your session and generate feedback.
+              Complete your interview and generate feedback?
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6">
-              <Button
-                onClick={() => setShowEndCallConfirm(false)}
-                variant="ghost"
-                className="flex-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-600 py-3 sm:py-4 text-sm sm:text-base"
-              >
-                Continue Interview
-              </Button>
+              {timeRemaining > 0 && (
+                <Button
+                  onClick={() => setShowEndCallConfirm(false)}
+                  variant="ghost"
+                  className="flex-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-600 py-3 sm:py-4 text-sm sm:text-base"
+                >
+                  Continue Interview
+                </Button>
+              )}
               <Button
                 onClick={confirmEndCall}
-                variant="destructive"
-                className="flex-1 py-3 sm:py-4 text-sm sm:text-base"
-              >
-                End Interview
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-      
-      {/* Exit confirmation modal - Responsive */}
-      {showExitConfirm && (
-        <div className="fixed inset-0 bg-white/90 dark:bg-black/95 flex items-center justify-center p-3 sm:p-4 z-50 transition-colors duration-500">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
-            className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-4 sm:p-6 max-w-sm sm:max-w-md w-full shadow-xl border border-gray-200 dark:border-gray-700 transition-colors duration-500"
-          >
-            <h3 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 dark:text-white">End Interview?</h3>
-            <p className="text-gray-700 dark:text-gray-300 mb-6 sm:mb-8 text-sm sm:text-base leading-relaxed">
-              Are you sure you want to end this interview? Your progress will not be saved.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6">
-              <Button
-                onClick={() => setShowExitConfirm(false)}
-                variant="outline"
-                className="flex-1 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 py-3 sm:py-4 text-sm sm:text-base"
-              >
-                Continue Interview
-              </Button>
-              <Button
-                onClick={confirmExit}
                 variant="destructive"
                 className="flex-1 py-3 sm:py-4 text-sm sm:text-base"
               >
