@@ -39,7 +39,6 @@ interface Interview {
 interface InterviewCardProps {
   interview: Interview;
   onEdit: (interview: Interview) => void;
-  onCancel: (interview: Interview) => void;
   onDelete: (interview: Interview) => void;
   onRetryFeedback?: (interview: Interview) => void;
   onRetryPrompt?: (interview: Interview) => void;
@@ -48,7 +47,6 @@ interface InterviewCardProps {
 const InterviewCard: React.FC<InterviewCardProps> = ({
   interview,
   onEdit,
-  onCancel,
   onDelete,
   onRetryFeedback,
   onRetryPrompt
@@ -175,31 +173,38 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
             disabled={interview.prompt_status !== 'ready' && interview.prompt_status !== 'failed'}
             className={`${interview.prompt_status !== 'ready' && interview.prompt_status !== 'failed' ? 'opacity-50 cursor-not-allowed' : ''} w-full sm:w-auto`}
           >
-            <Link to={`/interview/${interview.id}`} className="flex items-center gap-1 justify-center">
-              {interview.prompt_status === 'ready' ? (
-                <>
-                  <span className="hidden sm:inline">Start Interview</span>
-                  <span className="sm:hidden">Start</span>
-                </>
-              ) : interview.prompt_status === 'failed' ? (
-                <>
-                  <span className="hidden sm:inline">Retry Setup</span>
-                  <span className="sm:hidden">Retry</span>
-                </>
-              ) : interview.prompt_status === 'generating' ? (
-                <>
-                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent mr-1"></div>
-                  <span className="hidden sm:inline">Preparing...</span>
-                  <span className="sm:hidden">...</span>
-                </>
-              ) : (
-                <>
-                  <span className="hidden sm:inline">Preparing...</span>
-                  <span className="sm:hidden">...</span>
-                </>
-              )}
-              <ChevronRight className="h-4 w-4" />
-            </Link>
+            {(interview.prompt_status !== 'ready' && interview.prompt_status !== 'failed') ? (
+              <span className="flex items-center gap-1 cursor-not-allowed">
+                {interview.prompt_status === 'generating' ? (
+                  <>
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent mr-1"></div>
+                    <span className="hidden sm:inline">Preparing...</span>
+                    <span className="sm:hidden">...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">Preparing...</span>
+                    <span className="sm:hidden">...</span>
+                  </>
+                )}
+                <ChevronRight className="h-4 w-4" />
+              </span>
+            ) : (
+              <Link to={`/interview/${interview.id}`} className="flex items-center gap-1 justify-center">
+                {interview.prompt_status === 'ready' ? (
+                  <>
+                    <span className="hidden sm:inline">Start Interview</span>
+                    <span className="sm:hidden">Start</span>
+                  </>
+                ) : interview.prompt_status === 'failed' ? (
+                  <>
+                    <span className="hidden sm:inline">Retry Setup</span>
+                    <span className="sm:hidden">Retry</span>
+                  </>
+                ) : null}
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            )}
           </Button>
         )}
         
@@ -208,20 +213,26 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
             asChild 
             variant="outline" 
             size="sm"
-            disabled={interview.feedback_processing_status === 'processing'}
-            className={interview.feedback_processing_status === 'processing' ? 'opacity-70' : ''}
+            disabled={interview.feedback_processing_status !== 'completed'}
+            className={interview.feedback_processing_status !== 'completed' ? 'opacity-70' : ''}
           >
-            <Link to={`/feedback/${interview.id}`} className="flex items-center gap-1">
-              {interview.feedback_processing_status === 'processing' ? (
-                <>
-                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent mr-1"></div>
-                  Processing...
-                </>
-              ) : (
-                <>View Feedback</>
-              )}
-              <ChevronRight className="h-4 w-4" />
-            </Link>
+            {interview.feedback_processing_status === 'completed' ? (
+              <Link to={`/feedback/${interview.id}`} className="flex items-center gap-1">
+                View Feedback
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            ) : interview.feedback_processing_status === 'processing' ? (
+              <span className="flex items-center gap-1 cursor-not-allowed">
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent mr-1"></div>
+                Processing...
+                <ChevronRight className="h-4 w-4" />
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 cursor-not-allowed">
+                Queued
+                <ChevronRight className="h-4 w-4" />
+              </span>
+            )}
           </Button>
         )}
         
@@ -237,12 +248,6 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
-              {isUpcoming && (
-                <DropdownMenuItem onClick={() => onCancel(interview)}>
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Cancel
-                </DropdownMenuItem>
-              )}
               {hasPromptError && onRetryPrompt && (
                 <DropdownMenuItem onClick={() => onRetryPrompt(interview)}>
                   <RefreshCw className="h-4 w-4 mr-2" />
@@ -252,7 +257,7 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
               {isCompleted && onRetryFeedback && (
                 <DropdownMenuItem onClick={() => onRetryFeedback(interview)}>
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Regenerate
+                  Generate Feedback
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem 
