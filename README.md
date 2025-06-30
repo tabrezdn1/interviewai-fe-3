@@ -1,4 +1,4 @@
-# InterviewAI
+# InterviewAI 🎯
 
 InterviewAI is a cutting-edge web application designed to revolutionize interview preparation. Leveraging advanced AI, it provides job seekers with realistic interview simulations, personalized feedback, and comprehensive analytics to help them ace their next job interview.
 
@@ -226,6 +226,235 @@ graph TD
     C -- Change Password --> E[Supabase Auth Update];
 ```
 
+## 🔧 Technical Implementation Details
+
+### Database Schema
+
+The application uses a PostgreSQL database with the following key tables:
+
+```mermaid
+erDiagram
+    profiles ||--o{ interviews : has
+    interviews ||--o| feedback : receives
+    interview_types ||--o{ interviews : categorizes
+    experience_levels ||--o{ interviews : defines
+    difficulty_levels ||--o{ interviews : sets
+    profiles ||--o{ subscriptions : purchases
+    subscription_plans ||--o{ subscriptions : defines
+    profiles ||--o{ payment_methods : stores
+    profiles ||--o{ invoices : receives
+    
+    profiles {
+        uuid id PK
+        string name
+        string email
+        int total_conversation_minutes
+        int used_conversation_minutes
+        string subscription_tier
+        string stripe_customer_id
+    }
+    
+    interviews {
+        uuid id PK
+        uuid user_id FK
+        string title
+        string company
+        string role
+        int interview_type_id FK
+        int experience_level_id FK
+        int difficulty_level_id FK
+        string status
+        int score
+        timestamp scheduled_at
+        timestamp completed_at
+        int duration
+        string tavus_conversation_id
+        string tavus_persona_id
+        string feedback_processing_status
+    }
+    
+    feedback {
+        int id PK
+        uuid interview_id FK
+        int overall_score
+        string summary
+        string[] strengths
+        string[] improvements
+        int technical_score
+        int communication_score
+        int problem_solving_score
+        int experience_score
+        string transcript
+        jsonb tavus_analysis
+    }
+    
+    interview_types {
+        int id PK
+        string type
+        string title
+        string description
+        string icon
+    }
+    
+    experience_levels {
+        int id PK
+        string value
+        string label
+    }
+    
+    difficulty_levels {
+        int id PK
+        string value
+        string label
+    }
+    
+    subscription_plans {
+        string id PK
+        string name
+        string description
+        int amount
+        string interval_type
+        int conversation_minutes
+        jsonb features
+    }
+    
+    subscriptions {
+        string id PK
+        uuid user_id FK
+        string plan_id FK
+        string status
+        timestamp current_period_start
+        timestamp current_period_end
+    }
+    
+    payment_methods {
+        string id PK
+        uuid user_id FK
+        string type
+        string card_brand
+        string card_last4
+    }
+    
+    invoices {
+        string id PK
+        uuid user_id FK
+        string subscription_id FK
+        int amount_paid
+        string status
+    }
+```
+
+### Authentication Flow
+
+The application uses Supabase Auth for secure authentication:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Supabase_Auth
+    participant Supabase_DB
+    
+    User->>Frontend: Enter Credentials
+    Frontend->>Supabase_Auth: Sign In/Sign Up Request
+    Supabase_Auth-->>Frontend: Auth Response (JWT)
+    Frontend->>Supabase_DB: Fetch User Profile
+    Supabase_DB-->>Frontend: User Profile Data
+    Frontend->>User: Redirect to Dashboard
+```
+
+### Interview Creation and Prompt Generation
+
+The application uses a sophisticated prompt generation system:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Supabase_DB
+    participant Edge_Function
+    participant OpenAI
+    participant Tavus
+    
+    User->>Frontend: Configure Interview
+    Frontend->>Supabase_DB: Create Interview Record
+    Supabase_DB->>Edge_Function: Trigger Prompt Generation
+    
+    alt Cache Hit
+        Edge_Function->>Supabase_DB: Check Prompt Cache
+        Supabase_DB-->>Edge_Function: Return Cached Prompt
+    else Cache Miss
+        Edge_Function->>OpenAI: Generate Prompts
+        OpenAI-->>Edge_Function: Return Generated Prompts
+        Edge_Function->>Supabase_DB: Cache Prompts
+    end
+    
+    Edge_Function->>Tavus: Create Persona
+    Tavus-->>Edge_Function: Return Persona ID
+    Edge_Function->>Tavus: Create Conversation
+    Tavus-->>Edge_Function: Return Conversation URL
+    Edge_Function->>Supabase_DB: Update Interview Record
+    Supabase_DB-->>Frontend: Updated Interview Data
+    Frontend->>User: Ready to Start Interview
+```
+
+### Video Interview Session
+
+The application integrates with Tavus API and Daily.co for video interviews:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Daily_SDK
+    participant Tavus_API
+    
+    User->>Frontend: Start Interview
+    Frontend->>Daily_SDK: Initialize Video Call
+    Daily_SDK-->>Frontend: Video Call Ready
+    Frontend->>User: Show Video Interface
+    
+    loop Interview Conversation
+        User->>Daily_SDK: User Speaks
+        Daily_SDK->>Tavus_API: Stream Audio/Video
+        Tavus_API->>Tavus_API: Process with AI
+        Tavus_API->>Daily_SDK: AI Response
+        Daily_SDK->>User: AI Interviewer Speaks
+    end
+    
+    User->>Frontend: End Interview
+    Frontend->>Tavus_API: End Conversation
+    Frontend->>Supabase_DB: Update Interview Status
+```
+
+### Feedback Generation Process
+
+The application uses a sophisticated feedback generation system:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Supabase_DB
+    participant Edge_Function
+    participant Tavus_API
+    participant OpenAI
+    
+    User->>Frontend: Complete Interview
+    Frontend->>Supabase_DB: Update Status to Completed
+    Supabase_DB->>Edge_Function: Trigger Feedback Generation
+    
+    Edge_Function->>Tavus_API: Request Transcript & Analysis
+    Tavus_API-->>Edge_Function: Return Conversation Data
+    
+    Edge_Function->>OpenAI: Generate Feedback (with transcript)
+    OpenAI-->>Edge_Function: Return Structured Feedback
+    
+    Edge_Function->>Supabase_DB: Store Feedback
+    Supabase_DB-->>Frontend: Feedback Ready Notification
+    Frontend->>User: Display Feedback Report
+```
+
 ## ⚙️ Setup & Installation
 
 1.  **Clone the repository**
@@ -280,23 +509,17 @@ graph TD
     npm run dev
     ```
 
-## 🗄️ Database Schema
+5.  **Set up Supabase**
 
-The application uses Supabase with the following main tables:
+    - Create a new Supabase project
+    - Run the migrations in the `supabase/migrations` directory
+    - Deploy the Edge Functions in the `supabase/functions` directory
 
-*   **`profiles`**: User profiles linked to `auth.users`, storing name, email, subscription details, and conversation minutes.
-*   **`interviews`**: Records of interview sessions created by users, including configuration, status, and links to Tavus conversations and personas.
-*   **`interview_types`**: Lookup table for different interview categories (e.g., technical, behavioral).
-*   **`experience_levels`**: Lookup table for candidate experience levels.
-*   **`difficulty_levels`**: Lookup table for interview difficulty settings.
-*   **`feedback`**: Detailed feedback reports for completed interviews, including scores, summaries, strengths, improvements, and raw Tavus analysis data.
-*   **`llm_prompt_cache`**: Caches generated LLM prompts (system prompts, initial messages, persona details) to reduce API calls and improve performance.
-*   **`feedback_processing_jobs`**: Tracks the status of asynchronous feedback generation tasks.
-*   **`subscription_plans`**: Stores details of available subscription tiers.
-*   **`subscriptions`**: Records user subscriptions from Stripe.
-*   **`payment_methods`**: Stores user payment method details from Stripe.
-*   **`invoices`**: Records user billing history and invoices from Stripe.
-*   **`webhook_logs`**: Logs incoming webhook events for debugging and auditing.
+6.  **Set up Stripe**
+
+    - Create a Stripe account
+    - Set up products and prices matching the subscription plans
+    - Configure the webhook endpoint to point to your Supabase Edge Function
 
 ## 🚀 Deployment
 
@@ -310,6 +533,51 @@ npm run build
 
 This will generate an optimized production build in the `dist` directory.
 
+## 🧪 Testing
+
+The application includes comprehensive testing:
+
+```bash
+# Run unit tests
+npm run test
+
+# Run end-to-end tests
+npm run test:e2e
+```
+
+## 🔒 Security Considerations
+
+- **Authentication**: Secure JWT-based authentication via Supabase Auth
+- **Data Protection**: Row-level security policies in PostgreSQL
+- **API Security**: Edge Functions for secure API calls with service role keys
+- **Payment Security**: Stripe handles all payment information, no sensitive data stored
+- **Video Security**: Daily.co provides encrypted video sessions
+
+## 🌟 Performance Optimizations
+
+- **LLM Prompt Caching**: Reduces OpenAI API calls for similar interview configurations
+- **Lazy Loading**: Components and routes are loaded only when needed
+- **Database Indexing**: Strategic indexes for faster query performance
+- **Edge Functions**: Serverless functions for scalable backend operations
+- **CDN Deployment**: Static assets served via global CDN
+
+## 🔄 CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration and deployment:
+
+```mermaid
+graph TD
+    A[Push to Main Branch] --> B[Run Tests];
+    B --> C{Tests Pass?};
+    C -- Yes --> D[Build Production Assets];
+    C -- No --> E[Notify Developers];
+    D --> F[Deploy to Staging];
+    F --> G[Run E2E Tests];
+    G --> H{Tests Pass?};
+    H -- Yes --> I[Deploy to Production];
+    H -- No --> E;
+```
+
 ## 🤝 Contributing
 
 We welcome contributions! Please follow these steps:
@@ -320,6 +588,22 @@ We welcome contributions! Please follow these steps:
 4.  Push to the branch (`git push origin feature/your-feature-name`).
 5.  Open a Pull Request.
 
+## 🐛 Known Issues & Limitations
+
+- Video quality may vary based on user's internet connection
+- Some browsers may require additional permissions for camera/microphone access
+- Free tier has limited conversation minutes (25 minutes)
+- Feedback generation may take up to 5 minutes for longer interviews
+
+## 🔮 Future Roadmap
+
+- **Industry-Specific Templates**: Pre-configured interviews for different industries
+- **Interview Recording & Playback**: Allow users to review their own interviews
+- **Advanced Analytics Dashboard**: More detailed performance metrics over time
+- **Mock Coding Interviews**: Interactive coding challenges during technical interviews
+- **Multi-Language Support**: Interviews in languages other than English
+- **AI Resume Review**: Automated resume feedback and optimization
+
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
@@ -327,3 +611,14 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ## 📞 Contact
 
 Project Link: [https://interviewai.us](https://interviewai.us)
+
+## 🙏 Acknowledgements
+
+- [Tavus](https://tavus.io) - For the AI video interviewer technology
+- [OpenAI](https://openai.com) - For the GPT-4 API
+- [Supabase](https://supabase.com) - For the backend infrastructure
+- [Stripe](https://stripe.com) - For payment processing
+- [Daily.co](https://daily.co) - For video call infrastructure
+- [Framer Motion](https://framer.com/motion) - For animations
+- [Tailwind CSS](https://tailwindcss.com) - For styling
+- [Vite](https://vitejs.dev) - For frontend build tooling
